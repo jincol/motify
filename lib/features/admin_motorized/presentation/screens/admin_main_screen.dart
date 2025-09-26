@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'admin_dashboard_screen.dart';
+import 'admin_team_screen.dart';
 
 class AdminMotorizadoMainScreen extends StatefulWidget {
   const AdminMotorizadoMainScreen({super.key});
@@ -14,7 +15,7 @@ class _AdminMotorizadoMainScreenState extends State<AdminMotorizadoMainScreen> {
 
   final List<Widget> _screens = [
     AdminMotorizadoDashboardScreen(),
-    Center(child: Text('Reportes')),
+    AdminTeamScreen(),
     Center(child: Text('Chat')),
     Center(child: Text('Otro')),
   ];

@@ -61,7 +61,7 @@ class RiderCard extends StatelessWidget {
                             : statusInfo['text'],
                         style: const TextStyle(
                           fontSize: 14,
-                          color: Colors.black54,
+                          color: Color.fromARGB(137, 0, 0, 0),
                         ),
                       ),
                     ],
