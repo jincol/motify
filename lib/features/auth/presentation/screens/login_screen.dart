@@ -40,6 +40,9 @@ class LoginScreen extends ConsumerWidget {
           Navigator.pushReplacementNamed(context, '/motorizadoJornada');
         } else if (authState.role == 'anfitriona') {
           Navigator.pushReplacementNamed(context, '/anfitrionaJornada');
+        }
+        if (authState.role == 'admin_motorizado') {
+          Navigator.pushReplacementNamed(context, '/adminMotorizadoDashboard');
         } else {
           Navigator.pushReplacementNamed(context, '/home');
         }

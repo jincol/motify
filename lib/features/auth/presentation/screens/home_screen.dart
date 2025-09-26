@@ -10,6 +10,7 @@ class HomeScreen extends ConsumerWidget {
     final authNotifier = ref.read(authNotifierProvider.notifier);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F5F2),
       appBar: AppBar(
         title: const Text('Motify - Home'),
         backgroundColor: Colors.orange,

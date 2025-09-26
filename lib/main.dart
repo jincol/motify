@@ -6,6 +6,8 @@ import 'features/auth/presentation/screens/login_screen.dart';
 import 'features/auth/presentation/screens/home_screen.dart';
 import 'features/motorizado/presentation/screens/motorizado_dashboard_screen.dart';
 import 'features/motorizado/presentation/screens/jornada_control_screen.dart';
+import 'package:motify/features/anfitriona/presentation/screens/asistencia_anfitriona_screen.dart';
+import 'features/admin_motorized/presentation/screens/admin_main_screen.dart';
 
 void main() {
   runApp(const ProviderScope(child: MotifyApp()));
@@ -21,14 +23,19 @@ class MotifyApp extends ConsumerWidget {
     Widget homeWidget;
     if (authState.authStatus == AuthStatus.authenticated) {
       if (authState.role?.toLowerCase() == 'motorizado') {
-        print('DEBUG workState: ${authState.workState}');
         if (authState.workState == 'JORNADA_ACTIVA') {
           homeWidget = const MotorizadoDashboardScreen();
         } else {
           homeWidget = const JornadaControlScreen();
         }
       } else if (authState.role?.toLowerCase() == 'anfitriona') {
-        homeWidget = const JornadaControlScreen();
+        homeWidget = const AsistenciaAnfitrionaScreen();
+      } else if (authState.role?.toLowerCase() == 'admin_motorizado') {
+        homeWidget = const AdminMotorizadoMainScreen();
+        // } else if (authState.role?.toLowerCase() == 'super_admin') {
+        //   homeWidget = const SuperAdminDashboardScreen();
+        // } else if (authState.role?.toLowerCase() == 'admin_anfitriona') {
+        //   homeWidget = const AdminAnfitrionaDashboardScreen();
       } else {
         homeWidget = const HomeScreen();
       }
@@ -53,8 +60,9 @@ class MotifyApp extends ConsumerWidget {
         '/home': (context) => const HomeScreen(),
         '/motorizadoPage': (context) => const MotorizadoDashboardScreen(),
         '/motorizadoJornada': (context) => JornadaControlScreen(),
-        '/anfitrionaJornada': (context) =>
-            JornadaControlScreen(), // para anfitriona
+        '/anfitrionaJornada': (context) => AsistenciaAnfitrionaScreen(),
+        '/adminMotorizadoDashboard': (context) =>
+            const AdminMotorizadoMainScreen(),
       },
     );
   }

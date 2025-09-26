@@ -57,21 +57,28 @@ class _MotorizadoDashboardScreenState
   Widget build(BuildContext context) {
     // final authState = ref.watch(authNotifierProvider);
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F5F2),
       appBar: AppBar(
-        title: const Text(
-          'Mis Pedidos',
-          // Text('Estado: ${authState.workState ?? 'Desconocido'}'),
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
         backgroundColor: const Color(0xFFF97316),
         foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const FaIcon(FontAwesomeIcons.bars, color: Colors.white),
+          onPressed: () {},
+        ),
+        title: const Text(
+          'Mis Pedidos',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         actions: [
           IconButton(
-            icon: const FaIcon(FontAwesomeIcons.bell),
+            icon: const FaIcon(FontAwesomeIcons.bell, color: Colors.white),
             onPressed: () {},
           ),
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const FaIcon(
+              FontAwesomeIcons.rightFromBracket,
+              color: Colors.white,
+            ),
             tooltip: 'Marcar Salida',
             onPressed: () async {
               final confirm = await showDialog<bool>(
@@ -145,20 +152,14 @@ class _MotorizadoDashboardScreenState
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Pedidos'),
+          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Ruta'),
           BottomNavigationBarItem(
-            icon: FaIcon(FontAwesomeIcons.listUl),
-            label: 'Pedidos',
-          ),
-          BottomNavigationBarItem(
-            icon: FaIcon(FontAwesomeIcons.mapLocationDot),
-            label: 'Ruta',
-          ),
-          BottomNavigationBarItem(
-            icon: FaIcon(FontAwesomeIcons.clockRotateLeft),
+            icon: Icon(Icons.history),
             label: 'Historial',
           ),
           BottomNavigationBarItem(
-            icon: FaIcon(FontAwesomeIcons.comments),
+            icon: Icon(Icons.chat_bubble_outline),
             label: 'Chat',
           ),
         ],

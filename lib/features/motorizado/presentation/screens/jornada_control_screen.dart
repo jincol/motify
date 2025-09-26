@@ -11,6 +11,7 @@ class JornadaControlScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F5F2),
       appBar: AppBar(title: const Text('Control de Jornada')),
       drawer: const MainDrawer(),
       body: Padding(
