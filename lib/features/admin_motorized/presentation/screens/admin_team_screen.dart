@@ -154,101 +154,86 @@ class _AdminTeamScreenState extends State<AdminTeamScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F5F2),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF97316),
-        title: const Text(
-          'Gestión de Equipo',
-          style: TextStyle(color: Colors.white),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Wrap(
+              spacing: 8.0,
+              children: <Widget>[
+                FilterChip(
+                  label: const Text('Todos'),
+                  selected: _activeFilter == null,
+                  onSelected: (bool selected) => _filterRiders(null),
+                  selectedColor: const Color(0xFFF97316).withOpacity(0.15),
+                  labelStyle: TextStyle(
+                    color: _activeFilter == null
+                        ? const Color(0xFFF97316)
+                        : Colors.black87,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                FilterChip(
+                  label: const Text('En Ruta'),
+                  selected: _activeFilter == RiderStatus.enRuta,
+                  onSelected: (bool selected) =>
+                      _filterRiders(RiderStatus.enRuta),
+                  selectedColor: const Color(0xFFF97316).withOpacity(0.15),
+                  labelStyle: TextStyle(
+                    color: _activeFilter == RiderStatus.enRuta
+                        ? const Color(0xFFF97316)
+                        : Colors.black87,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                FilterChip(
+                  label: const Text('Jornada Activa'),
+                  selected: _activeFilter == RiderStatus.jornadaActiva,
+                  onSelected: (bool selected) =>
+                      _filterRiders(RiderStatus.jornadaActiva),
+                  selectedColor: const Color(0xFFF97316).withOpacity(0.15),
+                  labelStyle: TextStyle(
+                    color: _activeFilter == RiderStatus.jornadaActiva
+                        ? const Color(0xFFF97316)
+                        : Colors.black87,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                FilterChip(
+                  label: const Text('Inactivos'),
+                  selected: _activeFilter == RiderStatus.inactivo,
+                  onSelected: (bool selected) =>
+                      _filterRiders(RiderStatus.inactivo),
+                  selectedColor: const Color(0xFFF97316).withOpacity(0.15),
+                  labelStyle: TextStyle(
+                    color: _activeFilter == RiderStatus.inactivo
+                        ? const Color(0xFFF97316)
+                        : Colors.black87,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        centerTitle: true,
-        elevation: 1,
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 8.0,
-              horizontal: 12.0,
-            ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Wrap(
-                spacing: 8.0,
-                children: <Widget>[
-                  FilterChip(
-                    label: const Text('Todos'),
-                    selected: _activeFilter == null,
-                    onSelected: (bool selected) => _filterRiders(null),
-                    selectedColor: const Color(0xFFF97316).withOpacity(0.15),
-                    labelStyle: TextStyle(
-                      color: _activeFilter == null
-                          ? const Color(0xFFF97316)
-                          : Colors.black87,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  FilterChip(
-                    label: const Text('En Ruta'),
-                    selected: _activeFilter == RiderStatus.enRuta,
-                    onSelected: (bool selected) =>
-                        _filterRiders(RiderStatus.enRuta),
-                    selectedColor: const Color(0xFFF97316).withOpacity(0.15),
-                    labelStyle: TextStyle(
-                      color: _activeFilter == RiderStatus.enRuta
-                          ? const Color(0xFFF97316)
-                          : Colors.black87,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  FilterChip(
-                    label: const Text('Jornada Activa'),
-                    selected: _activeFilter == RiderStatus.jornadaActiva,
-                    onSelected: (bool selected) =>
-                        _filterRiders(RiderStatus.jornadaActiva),
-                    selectedColor: const Color(0xFFF97316).withOpacity(0.15),
-                    labelStyle: TextStyle(
-                      color: _activeFilter == RiderStatus.jornadaActiva
-                          ? const Color(0xFFF97316)
-                          : Colors.black87,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  FilterChip(
-                    label: const Text('Inactivos'),
-                    selected: _activeFilter == RiderStatus.inactivo,
-                    onSelected: (bool selected) =>
-                        _filterRiders(RiderStatus.inactivo),
-                    selectedColor: const Color(0xFFF97316).withOpacity(0.15),
-                    labelStyle: TextStyle(
-                      color: _activeFilter == RiderStatus.inactivo
-                          ? const Color(0xFFF97316)
-                          : Colors.black87,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            itemCount: _filteredRiders.length,
+            itemBuilder: (context, index) {
+              final rider = _filteredRiders[index];
+              return RiderCard(
+                rider: rider,
+                onEdit: () => _openRiderForm(rider: rider),
+                onDelete: () => _showDeleteConfirmation(context, rider),
+                onView: () {},
+              );
+            },
           ),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-              itemCount: _filteredRiders.length,
-              itemBuilder: (context, index) {
-                final rider = _filteredRiders[index];
-                return RiderCard(
-                  rider: rider,
-                  onEdit: () => _openRiderForm(rider: rider),
-                  onDelete: () => _showDeleteConfirmation(context, rider),
-                  onView: () {},
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
