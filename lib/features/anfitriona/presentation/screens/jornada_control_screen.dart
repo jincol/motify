@@ -18,7 +18,7 @@ class JornadaControlScreen extends StatelessWidget {
             onMarcarEntrada: () {
               AttendanceService.marcarAsistencia(
                 context: context,
-                tipo: 'check-in', // o 'check-out' según el caso
+                tipo: 'check-in',
                 onSuccess: () {
                   Navigator.pushReplacementNamed(
                     context,

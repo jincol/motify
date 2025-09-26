@@ -25,7 +25,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
         final token = data['access_token'];
         await _storage.write(key: 'token', value: token);
 
-        // --- Nueva petición a /users/me ---
         final meResponse = await http.get(
           Uri.parse('http://192.168.31.166:8000/api/v1/users/me'),
           headers: {'Authorization': 'Bearer $token'},
@@ -33,7 +32,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
         if (meResponse.statusCode == 200) {
           final meData = jsonDecode(meResponse.body);
           final role = meData['role'];
-          state = AuthState(authStatus: AuthStatus.authenticated, role: role);
+          final workState = meData['work_state'];
+          state = AuthState(
+            authStatus: AuthStatus.authenticated,
+            role: role,
+            workState: workState,
+          );
         } else {
           state = AuthState(authStatus: AuthStatus.error);
         }
@@ -48,6 +52,25 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> logout() async {
     await _storage.delete(key: 'token');
     state = AuthState(authStatus: AuthStatus.unauthenticated);
+  }
+
+  Future<void> fetchMe() async {
+    final token = await _storage.read(key: 'token');
+    if (token == null) return;
+    final meResponse = await http.get(
+      Uri.parse('http://192.168.31.166:8000/api/v1/users/me'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (meResponse.statusCode == 200) {
+      final meData = jsonDecode(meResponse.body);
+      final role = meData['role'];
+      final workState = meData['work_state'];
+      state = AuthState(
+        authStatus: AuthStatus.authenticated,
+        role: role,
+        workState: workState,
+      );
+    }
   }
 
   //change new

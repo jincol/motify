@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 
 class JornadaControlWidget extends StatelessWidget {
   final VoidCallback onMarcarEntrada;
-  const JornadaControlWidget({Key? key, required this.onMarcarEntrada})
-    : super(key: key);
+  final VoidCallback? onMarcarSalida;
+  const JornadaControlWidget({
+    Key? key,
+    required this.onMarcarEntrada,
+    this.onMarcarSalida,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

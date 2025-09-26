@@ -24,28 +24,8 @@ def check_in_attendance(
         user_db_obj.work_state = "JORNADA_ACTIVA"
     elif attendance_in.type == "check-out":
         user_db_obj.work_state = "INACTIVO"
+    print(f"DEBUG: Usuario {current_user.id} work_state actualizado a {user_db_obj.work_state}")  
     db.commit()
     db.refresh(user_db_obj)
 
     return AttendanceRead.model_validate(attendance_dict)
-
-@router.get("/status", response_model=AttendanceRead | None)
-def get_attendance_status(
-    db: Session = Depends(deps.get_db),
-    current_user = Depends(deps.get_current_user)
-):
-    last_checkin = db.query(Attendance).filter(
-        Attendance.user_id == current_user.id,
-        Attendance.type == "check-in"
-    ).order_by(Attendance.timestamp.desc()).first()
-    if last_checkin:
-        last_checkout = db.query(Attendance).filter(
-            Attendance.user_id == current_user.id,
-            Attendance.type == "check-out",
-            Attendance.timestamp > last_checkin.timestamp
-        ).first()
-        if not last_checkout:
-            attendance_dict = last_checkin.__dict__.copy()
-            attendance_dict['type'] = last_checkin.type.value 
-            return AttendanceRead.model_validate(attendance_dict)
-    return None

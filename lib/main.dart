@@ -22,7 +22,11 @@ class MotifyApp extends ConsumerWidget {
     if (authState.authStatus == AuthStatus.authenticated) {
       if (authState.role?.toLowerCase() == 'motorizado') {
         print('DEBUG workState: ${authState.workState}');
-        homeWidget = const JornadaControlScreen();
+        if (authState.workState == 'JORNADA_ACTIVA') {
+          homeWidget = const MotorizadoDashboardScreen();
+        } else {
+          homeWidget = const JornadaControlScreen();
+        }
       } else if (authState.role?.toLowerCase() == 'anfitriona') {
         homeWidget = const JornadaControlScreen();
       } else {

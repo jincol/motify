@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:motify/core/widgets/marcar_salida_button.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:motify/features/auth/application/auth_notifier.dart';
+import 'package:motify/core/services/attendance_service.dart';
 import '../../models/pedido.dart';
 import '../widgets/pedido_card.dart';
 
-class MotorizadoDashboardScreen extends StatefulWidget {
+class MotorizadoDashboardScreen extends ConsumerStatefulWidget {
   const MotorizadoDashboardScreen({super.key});
 
   @override
-  State<MotorizadoDashboardScreen> createState() =>
+  ConsumerState<MotorizadoDashboardScreen> createState() =>
       _MotorizadoDashboardScreenState();
 }
 
-class _MotorizadoDashboardScreenState extends State<MotorizadoDashboardScreen> {
+class _MotorizadoDashboardScreenState
+    extends ConsumerState<MotorizadoDashboardScreen> {
   int _selectedIndex = 0;
 
   final List<Pedido> _pedidos = [
@@ -51,10 +55,12 @@ class _MotorizadoDashboardScreenState extends State<MotorizadoDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // final authState = ref.watch(authNotifierProvider);
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           'Mis Pedidos',
+          // Text('Estado: ${authState.workState ?? 'Desconocido'}'),
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: const Color(0xFFF97316),
@@ -81,6 +87,18 @@ class _MotorizadoDashboardScreenState extends State<MotorizadoDashboardScreen> {
                       onPressed: () => Navigator.of(ctx).pop(false),
                     ),
                     ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFF97316),
+                        foregroundColor: Colors.white,
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
                       child: const Text('Confirmar'),
                       onPressed: () => Navigator.of(ctx).pop(true),
                     ),
@@ -88,8 +106,26 @@ class _MotorizadoDashboardScreenState extends State<MotorizadoDashboardScreen> {
                 ),
               );
               if (confirm == true) {
-                // Lógica para marcar salida (foto, GPS, backend, etc.)
-                // Navigator.pushReplacementNamed(context, '/motorizadoJornada');
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (_) =>
+                      const Center(child: CircularProgressIndicator()),
+                );
+                await AttendanceService.marcarAsistencia(
+                  context: context,
+                  tipo: 'check-out',
+                  onSuccess: () async {
+                    Navigator.of(context).pop();
+                    await ref.read(authNotifierProvider.notifier).fetchMe();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Salida registrada correctamente.'),
+                      ),
+                    );
+                    setState(() {});
+                  },
+                );
               }
             },
           ),
