@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:motify/core/widgets/marcar_salida_button.dart';
 import '../../models/pedido.dart';
 import '../widgets/pedido_card.dart';
 
@@ -61,8 +62,35 @@ class _MotorizadoDashboardScreenState extends State<MotorizadoDashboardScreen> {
         actions: [
           IconButton(
             icon: const FaIcon(FontAwesomeIcons.bell),
-            onPressed: () {
-              // Lógica para notificaciones
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Marcar Salida',
+            onPressed: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('¿Marcar salida?'),
+                  content: const Text(
+                    '¿Estás seguro que deseas finalizar tu jornada?',
+                  ),
+                  actions: [
+                    TextButton(
+                      child: const Text('Cancelar'),
+                      onPressed: () => Navigator.of(ctx).pop(false),
+                    ),
+                    ElevatedButton(
+                      child: const Text('Confirmar'),
+                      onPressed: () => Navigator.of(ctx).pop(true),
+                    ),
+                  ],
+                ),
+              );
+              if (confirm == true) {
+                // Lógica para marcar salida (foto, GPS, backend, etc.)
+                // Navigator.pushReplacementNamed(context, '/motorizadoJornada');
+              }
             },
           ),
         ],
@@ -75,9 +103,7 @@ class _MotorizadoDashboardScreenState extends State<MotorizadoDashboardScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Lógica para agregar un nuevo pedido
-        },
+        onPressed: () {},
         backgroundColor: const Color(0xFFF97316),
         child: const FaIcon(FontAwesomeIcons.plus, color: Colors.white),
       ),

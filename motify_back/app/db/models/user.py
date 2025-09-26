@@ -2,20 +2,24 @@
 from sqlalchemy import Column, Integer, String, Boolean, Enum as SQLAlchemyEnum, DateTime
 from sqlalchemy.sql import func
 from ..database import Base
-import enum 
+from enum import Enum
 
 # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-# AQUÍ SE DEFINE EL ENUM UserRole
+# AQUÍ SE DEFINE EL ENUM UserRole y workState
 # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-class UserRole(str, enum.Enum): # Hereda de str y enum.Enum
-    MOTORIZADO = "motorizado"
-    ADMIN_MOTORIZADO = "admin_motorizado"
-    ANFITRIONA = "anfitriona"
-    ADMIN_ANFITRIONA = "admin_anfitriona"
-    SUPER_ADMIN = "super_admin"
+class UserRole(str, Enum):
+    MOTORIZADO = "MOTORIZADO"
+    ADMIN_MOTORIZADO = "ADMIN_MOTORIZADO"
+    ANFITRIONA = "ANFITRIONA"
+    ADMIN_ANFITRIONA = "ADMIN_ANFITRIONA"
+    SUPER_ADMIN = "SUPER_ADMIN"
+
+class WorkState(str, Enum):
+    INACTIVO = "INACTIVO"
+    JORNADA_ACTIVA = "JORNADA_ACTIVA"
+    EN_RUTA = "EN_RUTA"
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-# AQUÍ TERMINA LA DEFINICIÓN DEL ENUM UserRole
-# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 
 class User(Base):
     __tablename__ = "users"
@@ -30,7 +34,7 @@ class User(Base):
     is_superuser = Column(Boolean(), default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), default=func.now(), server_default=func.now(), onupdate=func.now(), nullable=False)
-    
+    work_state = Column(SQLAlchemyEnum(WorkState, name="workstate_enum", create_constraint=True), nullable=False, default=WorkState.INACTIVO)    
     def __repr__(self):
-        return f"<User(id={self.id}, username='{self.username}', role='{self.role.value}')>"
+        return f"<User(id={self.id}, username='{self.username}', role='{self.role.value}', work_state='{self.work_state.value}')>"
 
