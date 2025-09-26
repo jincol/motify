@@ -20,7 +20,10 @@ class MainDrawer extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.arrow_back, color: AppTheme.darkText),
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: Color.fromARGB(221, 105, 70, 70),
+                  ),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
