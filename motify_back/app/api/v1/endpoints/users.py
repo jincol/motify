@@ -32,7 +32,6 @@ def create_user_endpoint(
     """
     Crea un nuevo usuario.
     """
-
     existing_user_by_username = crud.user.get_user_by_username(db, username=user_in.username)
     if existing_user_by_username:
         raise HTTPException(

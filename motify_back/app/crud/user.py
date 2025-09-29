@@ -1,5 +1,6 @@
 # app/crud/user.py
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import Optional, List, Dict, Any
 
 from app.db import models 
@@ -16,7 +17,7 @@ def get_user_by_username(db: Session, username: str) -> Optional[models.User]:
     """
     Obtiene un usuario por su nombre de usuario.
     """
-    return db.query(models.User).filter(models.User.username == username).first()
+    return db.query(models.User).filter(func.lower(models.User.username) == username.lower()).first()
 
 def get_user_by_email(db: Session, email: str) -> Optional[models.User]:
     """
@@ -36,11 +37,11 @@ def create_user(db: Session, user_in: user_schemas.UserCreate) -> models.User:
     """
     hashed_password = get_password_hash(user_in.password)
     db_user_data = user_in.dict(exclude={"password"}) 
+    db_user_data["username"] = db_user_data["username"].lower()
     db_user_data["password_hash"] = hashed_password
-    
+    print("DEBUG db_user_data:", db_user_data)  
     if db_user_data["role"] == "super_admin":
         db_user_data["is_superuser"] = True
-    
     db_user = models.User(**db_user_data)
     db.add(db_user)
     db.commit()

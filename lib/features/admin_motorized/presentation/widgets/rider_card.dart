@@ -41,7 +41,7 @@ class RiderCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    user.username,
+                    _capitalize(user.username),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -100,5 +100,17 @@ class RiderCard extends StatelessWidget {
       default:
         return {'text': 'Inactivo', 'color': const Color(0xFF9CA3AF)};
     }
+  }
+
+  String _capitalize(String s) {
+    if (s.isEmpty) return s;
+    return s
+        .split(' ')
+        .map(
+          (word) => word.isNotEmpty
+              ? word[0].toUpperCase() + word.substring(1).toLowerCase()
+              : '',
+        )
+        .join(' ');
   }
 }

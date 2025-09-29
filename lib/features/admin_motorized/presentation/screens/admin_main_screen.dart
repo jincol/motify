@@ -58,6 +58,7 @@ class _AdminMotorizadoMainScreenState extends State<AdminMotorizadoMainScreen> {
                 contrasena: data['contrasena'],
                 role: 'MOTORIZADO',
                 telefono: data['telefono'],
+                placaUnidad: data['placa_unidad'],
                 fotoUrl: null,
                 token: authState.token!,
               );

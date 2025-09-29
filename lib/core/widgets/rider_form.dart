@@ -24,7 +24,7 @@ class _RiderFormState extends State<RiderForm> {
   final _userController = TextEditingController();
   final _passwordController = TextEditingController();
   final _phoneController = TextEditingController();
-
+  final _placaController = TextEditingController();
   Future<void> _pickImage() async {
     final XFile? pickedFile = await _picker.pickImage(
       source: ImageSource.gallery,
@@ -45,8 +45,11 @@ class _RiderFormState extends State<RiderForm> {
         'usuario': _userController.text,
         'contrasena': _passwordController.text,
         'telefono': _phoneController.text,
+        'placa_unidad': _placaController.text,
         'foto': _profileImage,
       };
+      print('DEBUG placa_unidad: \'${_placaController.text}\'');
+      print('DEBUG data enviada: $data');
       widget.onSubmit?.call(data);
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -159,6 +162,12 @@ class _RiderFormState extends State<RiderForm> {
               label: 'Teléfono (Opcional)',
               isOptional: true,
               keyboardType: TextInputType.phone,
+            ),
+            _buildTextField(
+              controller: _placaController,
+              label: 'AB-123 (Opcional)',
+              isOptional: true,
+              keyboardType: TextInputType.text,
             ),
             const SizedBox(height: 24),
             // Botones

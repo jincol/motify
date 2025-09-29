@@ -36,6 +36,8 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), default=func.now(), server_default=func.now(), onupdate=func.now(), nullable=False)
     work_state = Column(SQLAlchemyEnum(WorkState, name="workstate_enum", create_constraint=True), nullable=False, default=WorkState.INACTIVO)  
+    phone = Column(String, nullable=True)
+    placa_unidad = Column(String, nullable=True)
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}', role='{self.role.value}', work_state='{self.work_state.value}')>"
 

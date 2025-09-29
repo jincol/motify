@@ -13,6 +13,7 @@ class UserService {
     required String contrasena,
     required String role,
     String? telefono,
+    String? placaUnidad,
     String? fotoUrl,
     required String token,
   }) async {
@@ -23,6 +24,7 @@ class UserService {
       'password': contrasena,
       'role': role,
       'phone': telefono,
+      'placa_unidad': placaUnidad,
       'avatar_url': fotoUrl,
     };
 

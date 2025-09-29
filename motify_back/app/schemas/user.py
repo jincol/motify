@@ -21,6 +21,8 @@ class UserBase(BaseModel):
     full_name: Optional[str] = Field(None, max_length=255, description="Nombre completo del usuario")
     role: UserRole = Field(..., description="Rol del usuario en el sistema")
     work_state: WorkState = Field(..., description="Estado de jornada del usuario")
+    phone: Optional[str] = None
+    placa_unidad: Optional[str] = None
     grupo_id: Optional[int] = None
 
 
