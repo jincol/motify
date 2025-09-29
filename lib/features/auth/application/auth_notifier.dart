@@ -37,6 +37,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
             authStatus: AuthStatus.authenticated,
             role: role,
             workState: workState,
+            token: token,
           );
         } else {
           state = AuthState(authStatus: AuthStatus.error);
@@ -69,6 +70,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         authStatus: AuthStatus.authenticated,
         role: role,
         workState: workState,
+        token: token,
       );
     }
   }

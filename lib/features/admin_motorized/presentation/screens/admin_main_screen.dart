@@ -1,8 +1,11 @@
+import '../../../../core/widgets/rider_form.dart';
 import '../../../../core/widgets/main_drawer.dart';
+import '../../../../core/services/user_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:motify/features/auth/application/auth_notifier.dart';
 import 'package:flutter/material.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_team_screen.dart';
-import '../widgets/rider_form.dart';
 
 String _getTitleForIndex(int index) {
   switch (index) {
@@ -40,11 +43,41 @@ class _AdminMotorizadoMainScreenState extends State<AdminMotorizadoMainScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => RiderForm(
-        title: 'Agregar Motorizado',
-        onSubmit: (data) {
-          // Aquí va la lógica para agregar el motorizado a la lista
-        },
+      builder: (context) => Consumer(
+        builder: (context, ref, _) => RiderForm(
+          title: 'Agregar Motorizado',
+          onSubmit: (data) async {
+            final authState = ref.watch(authNotifierProvider);
+            if (authState.role == 'ADMIN_MOTORIZADO') {
+              final userService = UserService();
+              final response = await userService.createUser(
+                nombre: data['nombre'],
+                apellido: data['apellido'],
+                usuario: data['usuario'],
+                email: data['email'],
+                contrasena: data['contrasena'],
+                role: 'MOTORIZADO',
+                telefono: data['telefono'],
+                fotoUrl: null,
+                token: authState.token!,
+              );
+              if (response.statusCode == 201) {
+                // Usuario creado correctamente, actualiza la lista
+                // setState o lógica para refrescar la pantalla
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error al crear usuario')),
+                );
+              }
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('No hay token. Inicia sesión nuevamente.'),
+                ),
+              );
+            }
+          },
+        ),
       ),
     );
   }

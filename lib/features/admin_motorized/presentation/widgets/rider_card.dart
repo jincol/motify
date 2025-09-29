@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import '../../domain/models/rider.dart';
+import '../../domain/models/user.dart';
 
 class RiderCard extends StatelessWidget {
-  final Rider rider;
+  final User user;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onView;
 
   const RiderCard({
     super.key,
-    required this.rider,
+    required this.user,
     required this.onEdit,
     required this.onDelete,
     required this.onView,
@@ -17,7 +17,7 @@ class RiderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusInfo = _getStatusInfo(rider.status);
+    final statusInfo = _getStatusInfo(user.workState);
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
@@ -29,7 +29,11 @@ class RiderCard extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 24,
-              backgroundImage: NetworkImage(rider.avatarUrl),
+              backgroundColor: Colors.grey.shade200,
+              child: Text(
+                user.username.isNotEmpty ? user.username[0].toUpperCase() : '?',
+                style: const TextStyle(fontSize: 20, color: Colors.black),
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -37,7 +41,7 @@ class RiderCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    rider.name,
+                    user.username,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -56,9 +60,7 @@ class RiderCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        rider.status == RiderStatus.enRuta
-                            ? '${statusInfo['text']} - Pedido #${rider.orderId}'
-                            : statusInfo['text'],
+                        statusInfo['text'],
                         style: const TextStyle(
                           fontSize: 14,
                           color: Color.fromARGB(137, 0, 0, 0),
@@ -88,13 +90,14 @@ class RiderCard extends StatelessWidget {
     );
   }
 
-  Map<String, dynamic> _getStatusInfo(RiderStatus status) {
+  Map<String, dynamic> _getStatusInfo(String status) {
     switch (status) {
-      case RiderStatus.enRuta:
+      case 'EN_RUTA':
         return {'text': 'En Ruta', 'color': const Color(0xFF22C55E)};
-      case RiderStatus.jornadaActiva:
+      case 'JORNADA_ACTIVA':
         return {'text': 'Jornada Activa', 'color': const Color(0xFFFACC15)};
-      case RiderStatus.inactivo:
+      case 'INACTIVO':
+      default:
         return {'text': 'Inactivo', 'color': const Color(0xFF9CA3AF)};
     }
   }
