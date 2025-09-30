@@ -30,10 +30,18 @@ class RiderCard extends StatelessWidget {
             CircleAvatar(
               radius: 24,
               backgroundColor: Colors.grey.shade200,
-              child: Text(
-                user.username.isNotEmpty ? user.username[0].toUpperCase() : '?',
-                style: const TextStyle(fontSize: 20, color: Colors.black),
-              ),
+              backgroundImage:
+                  (user.avatarUrl != null && user.avatarUrl!.isNotEmpty)
+                  ? NetworkImage(user.avatarUrl!)
+                  : null,
+              child: (user.avatarUrl == null || user.avatarUrl!.isEmpty)
+                  ? Text(
+                      user.username.isNotEmpty
+                          ? user.username[0].toUpperCase()
+                          : '?',
+                      style: const TextStyle(fontSize: 20, color: Colors.black),
+                    )
+                  : null,
             ),
             const SizedBox(width: 12),
             Expanded(

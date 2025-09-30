@@ -16,8 +16,8 @@ class RiderForm extends StatefulWidget {
 class _RiderFormState extends State<RiderForm> {
   final _formKey = GlobalKey<FormState>();
   File? _profileImage;
+  bool _showPassword = false;
   final ImagePicker _picker = ImagePicker();
-
   final _nameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -45,19 +45,11 @@ class _RiderFormState extends State<RiderForm> {
         'usuario': _userController.text,
         'contrasena': _passwordController.text,
         'telefono': _phoneController.text,
-        'placa_unidad': _placaController.text,
+        'placa_unidad': _placaController.text.toUpperCase(),
         'foto': _profileImage,
       };
-      print('DEBUG placa_unidad: \'${_placaController.text}\'');
-      print('DEBUG data enviada: $data');
+
       widget.onSubmit?.call(data);
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${widget.title} guardado con éxito.'),
-          backgroundColor: Colors.green,
-        ),
-      );
     }
   }
 
@@ -142,7 +134,6 @@ class _RiderFormState extends State<RiderForm> {
               ),
             ),
             const SizedBox(height: 16),
-            // Campos de texto
             _buildTextField(controller: _nameController, label: 'Nombre'),
             const SizedBox(height: 16),
             _buildTextField(controller: _lastNameController, label: 'Apellido'),
@@ -154,7 +145,18 @@ class _RiderFormState extends State<RiderForm> {
             _buildTextField(
               controller: _passwordController,
               label: 'Contraseña',
-              obscureText: true,
+              obscureText: !_showPassword,
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _showPassword ? Icons.visibility : Icons.visibility_off,
+                  color: Colors.grey,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _showPassword = !_showPassword;
+                  });
+                },
+              ),
             ),
             const SizedBox(height: 16),
             _buildTextField(
@@ -213,6 +215,7 @@ class _RiderFormState extends State<RiderForm> {
     bool obscureText = false,
     bool isOptional = false,
     TextInputType keyboardType = TextInputType.text,
+    Widget? suffixIcon,
   }) {
     return TextFormField(
       controller: controller,
@@ -221,6 +224,7 @@ class _RiderFormState extends State<RiderForm> {
       decoration: InputDecoration(
         labelText: label,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        suffixIcon: suffixIcon,
       ),
       validator: (value) {
         if (!isOptional && (value == null || value.isEmpty)) {

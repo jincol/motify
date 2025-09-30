@@ -23,8 +23,8 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Exponer carpeta fotos/ como estáticos
-fotos_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../..", "fotos"))
+# fotos_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../..", "fotos"))
+fotos_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "fotos"))
 os.makedirs(fotos_dir, exist_ok=True)
 app.mount("/fotos", StaticFiles(directory=fotos_dir), name="fotos")
 

@@ -38,6 +38,7 @@ class User(Base):
     work_state = Column(SQLAlchemyEnum(WorkState, name="workstate_enum", create_constraint=True), nullable=False, default=WorkState.INACTIVO)  
     phone = Column(String, nullable=True)
     placa_unidad = Column(String, nullable=True)
+    avatar_url = Column(String(512), nullable=True)  # URL de la foto de perfil
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}', role='{self.role.value}', work_state='{self.work_state.value}')>"
 

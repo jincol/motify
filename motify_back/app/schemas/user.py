@@ -31,15 +31,17 @@ class UserCreate(UserBase):
     is_active: Optional[bool] = True
     is_superuser: Optional[bool] = False
     work_state: Optional[WorkState] = WorkState.INACTIVO  
-    
-class UserUpdate(BaseModel): 
+    avatar_url: Optional[str] = None  
+
+class UserUpdate(BaseModel):    
     email: Optional[EmailStr] = None
     full_name: Optional[str] = None
-    password: Optional[str] = Field(None, min_length=8, description="Nueva contraseña (opcional, mínimo 8 caracteres)")
+    password: Optional[str] = Field(None, min_length=6, description="Nueva contraseña (opcional, mínimo 6 caracteres)")
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None
     is_superuser: Optional[bool] = None
     grupo_id: Optional[int] = None
+    avatar_url: Optional[str] = None  
 
 class UserRead(UserBase):
     id: int
@@ -47,6 +49,7 @@ class UserRead(UserBase):
     is_superuser: bool
     created_at: datetime
     updated_at: datetime
+    avatar_url: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
     

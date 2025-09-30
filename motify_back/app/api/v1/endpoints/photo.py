@@ -1,27 +1,33 @@
+
 import os
 import io
 from uuid import uuid4
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Form
 from fastapi.responses import JSONResponse
 from PIL import Image, ExifTags
 
-
 router = APIRouter()
 
+SUBFOLDERS = {"profile", "attendance", "pickup", "delivery"}
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"}
 UPLOAD_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../..", "fotos"))
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/upload/photo")
-def upload_photo(file: UploadFile = File(...)):
+def upload_photo(
+    file: UploadFile = File(...),
+    tipo: str = Form("others")
+):
     ext = file.filename.split(".")[-1].lower()
     if ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(status_code=400, detail="Tipo de archivo no permitido. Solo jpg, jpeg, png.")
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="El archivo no es una imagen válida.")
     filename = f"{uuid4()}.{ext}"
-    file_path = os.path.join(UPLOAD_DIR, filename)
-
+    subfolder = tipo if tipo in SUBFOLDERS else "otros"
+    folder_path = os.path.join(UPLOAD_DIR, subfolder)
+    os.makedirs(folder_path, exist_ok=True)
+    file_path = os.path.join(folder_path, filename)
 
     image_bytes = file.file.read()
     image = Image.open(io.BytesIO(image_bytes))
@@ -52,5 +58,5 @@ def upload_photo(file: UploadFile = File(...)):
         save_kwargs = {"optimize": True}
     image.save(file_path, format=image.format, **save_kwargs)
 
-    url = f"/fotos/{filename}"
+    url = f"/fotos/{subfolder}/{filename}"
     return JSONResponse(content={"url": url, "filename": filename})

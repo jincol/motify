@@ -1,8 +1,10 @@
-import '../../../../core/widgets/rider_form.dart';
-import '../../../../core/widgets/main_drawer.dart';
-import '../../../../core/services/user_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:motify/features/admin_motorized/application/users_provider.dart';
 import 'package:motify/features/auth/application/auth_notifier.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/services/photo_service.dart';
+import '../../../../core/services/user_service.dart';
+import '../../../../core/widgets/main_drawer.dart';
+import '../../../../core/widgets/rider_form.dart';
 import 'package:flutter/material.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_team_screen.dart';
@@ -22,15 +24,16 @@ String _getTitleForIndex(int index) {
   }
 }
 
-class AdminMotorizadoMainScreen extends StatefulWidget {
+class AdminMotorizadoMainScreen extends ConsumerStatefulWidget {
   const AdminMotorizadoMainScreen({super.key});
 
   @override
-  State<AdminMotorizadoMainScreen> createState() =>
+  ConsumerState<AdminMotorizadoMainScreen> createState() =>
       _AdminMotorizadoMainScreenState();
 }
 
-class _AdminMotorizadoMainScreenState extends State<AdminMotorizadoMainScreen> {
+class _AdminMotorizadoMainScreenState
+    extends ConsumerState<AdminMotorizadoMainScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
@@ -39,48 +42,79 @@ class _AdminMotorizadoMainScreenState extends State<AdminMotorizadoMainScreen> {
     Center(child: Text('Chat')),
     Center(child: Text('Otro')),
   ];
-  void _onAddMotorizado() {
-    showModalBottomSheet(
+  void _onAddMotorizado() async {
+    final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      builder: (context) => Consumer(
-        builder: (context, ref, _) => RiderForm(
-          title: 'Agregar Motorizado',
-          onSubmit: (data) async {
-            final authState = ref.watch(authNotifierProvider);
-            if (authState.role == 'ADMIN_MOTORIZADO') {
-              final userService = UserService();
-              final response = await userService.createUser(
-                nombre: data['nombre'],
-                apellido: data['apellido'],
-                usuario: data['usuario'],
-                email: data['email'],
-                contrasena: data['contrasena'],
-                role: 'MOTORIZADO',
-                telefono: data['telefono'],
-                placaUnidad: data['placa_unidad'],
-                fotoUrl: null,
-                token: authState.token!,
-              );
-              if (response.statusCode == 201) {
-                // Usuario creado correctamente, actualiza la lista
-                // setState o lógica para refrescar la pantalla
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error al crear usuario')),
-                );
-              }
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('No hay token. Inicia sesión nuevamente.'),
-                ),
+      builder: (modalContext) => RiderForm(
+        title: 'Agregar Motorizado',
+        onSubmit: (data) async {
+          final authState = ref.read(authNotifierProvider);
+          if (authState.role == 'ADMIN_MOTORIZADO') {
+            String? fotoUrl;
+            if (data['foto'] != null) {
+              fotoUrl = await PhotoService.uploadPhoto(
+                data['foto'],
+                tipo: 'profile',
               );
             }
-          },
-        ),
+            final userService = UserService();
+            final response = await userService.createUser(
+              nombre: data['nombre'],
+              apellido: data['apellido'],
+              usuario: data['usuario'],
+              email: data['email'],
+              contrasena: data['contrasena'],
+              role: 'MOTORIZADO',
+              telefono: data['telefono'],
+              placaUnidad: data['placa_unidad'],
+              fotoUrl: fotoUrl,
+              token: authState.token!,
+            );
+            if (response.statusCode == 201) {
+              ref.refresh(motorizadoUsersProvider);
+              Navigator.of(modalContext).pop(true);
+            } else {
+              ScaffoldMessenger.of(
+                modalContext,
+              ).showSnackBar(SnackBar(content: Text('Error al crear usuario')));
+            }
+          } else {
+            ScaffoldMessenger.of(modalContext).showSnackBar(
+              SnackBar(
+                content: Text('No hay token. Inicia sesión nuevamente.'),
+              ),
+            );
+          }
+        },
       ),
     );
+    if (result == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white, size: 28),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Usuario creado correctamente',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.orange[500],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          duration: Duration(seconds: 2),
+          elevation: 8,
+        ),
+      );
+    }
   }
 
   @override

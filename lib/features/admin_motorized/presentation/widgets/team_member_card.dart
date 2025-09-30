@@ -5,6 +5,7 @@ class TeamMemberCard extends StatelessWidget {
   final String status;
   final String initials;
   final Color statusColor;
+  final String? avatarUrl;
 
   const TeamMemberCard({
     super.key,
@@ -12,6 +13,7 @@ class TeamMemberCard extends StatelessWidget {
     required this.status,
     required this.initials,
     required this.statusColor,
+    this.avatarUrl,
   });
 
   @override
@@ -26,13 +28,18 @@ class TeamMemberCard extends StatelessWidget {
             CircleAvatar(
               radius: 24,
               backgroundColor: Colors.grey[300],
-              child: Text(
-                initials,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              backgroundImage: (avatarUrl != null && avatarUrl!.isNotEmpty)
+                  ? NetworkImage(avatarUrl!)
+                  : null,
+              child: (avatarUrl == null || avatarUrl!.isEmpty)
+                  ? Text(
+                      initials,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : null,
             ),
             const SizedBox(width: 16),
             Expanded(

@@ -9,12 +9,9 @@ final motorizadoUsersProvider = FutureProvider<List<User>>((ref) async {
   final authState = ref.watch(authNotifierProvider);
   final token = authState.token;
 
-  // Validamos que el token exista para poder realizar la petición.
   if (token == null || token.isEmpty) {
     throw Exception('No hay token de autenticación para obtener los usuarios.');
   }
 
-  // Llamamos al servicio pidiendo específicamente los usuarios con rol MOTORIZADO.
-  // El backend se encargará de filtrar por el grupo del admin (usando el token).
   return await UserService().fetchUsers(token: token, role: 'MOTORIZADO');
 });

@@ -6,6 +6,7 @@ class User {
   final String role;
   final String workState;
   final int? grupoId;
+  final String? avatarUrl;
 
   User({
     required this.id,
@@ -13,6 +14,7 @@ class User {
     required this.role,
     required this.workState,
     this.grupoId,
+    this.avatarUrl,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -22,6 +24,7 @@ class User {
       role: json['role'],
       workState: json['work_state'],
       grupoId: json['grupo_id'],
+      avatarUrl: json['avatar_url'],
     );
   }
 }

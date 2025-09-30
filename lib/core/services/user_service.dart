@@ -57,4 +57,20 @@ class UserService {
       );
     }
   }
+
+  Future<http.Response> updateAvatarUrl({
+    required String userId,
+    required String avatarUrl,
+    required String token,
+  }) async {
+    final response = await http.patch(
+      Uri.parse('$_baseUrl$userId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'avatar_url': avatarUrl}),
+    );
+    return response;
+  }
 }
