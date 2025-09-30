@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/services/photo_service.dart';
 import '../../../../core/services/user_service.dart';
 import '../../../../core/widgets/main_drawer.dart';
+import '../../../../core/widgets/panel_app_bar.dart';
 import '../../../../core/widgets/rider_form.dart';
 import 'package:flutter/material.dart';
 import 'admin_dashboard_screen.dart';
@@ -121,20 +122,8 @@ class _AdminMotorizadoMainScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F5F2),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF97316),
-        elevation: 1.0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: Text(
-          _getTitleForIndex(_selectedIndex),
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-            letterSpacing: 0.5,
-          ),
-        ),
-        centerTitle: true,
+      appBar: PanelAppBar(
+        title: _getTitleForIndex(_selectedIndex),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_none, color: Colors.white),
