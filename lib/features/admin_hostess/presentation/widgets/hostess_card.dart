@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:motify/core/models/user.dart';
 
-class RiderCard extends StatelessWidget {
+class HostessCard extends StatelessWidget {
   final User user;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onView;
 
-  const RiderCard({
+  const HostessCard({
     super.key,
     required this.user,
     required this.onEdit,
@@ -18,6 +18,17 @@ class RiderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusInfo = _getStatusInfo(user.workState);
+    final String displayName = user.name;
+    final String initials = displayName.isNotEmpty
+        ? displayName
+              .trim()
+              .split(' ')
+              .map((e) => e.isNotEmpty ? e[0] : '')
+              .take(2)
+              .join()
+              .toUpperCase()
+        : '?';
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
@@ -29,16 +40,14 @@ class RiderCard extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 24,
-              backgroundColor: Colors.grey.shade200,
+              backgroundColor: Colors.orange.shade100,
               backgroundImage:
                   (user.avatarUrl != null && user.avatarUrl!.isNotEmpty)
                   ? NetworkImage(user.avatarUrl!)
                   : null,
               child: (user.avatarUrl == null || user.avatarUrl!.isEmpty)
                   ? Text(
-                      user.username.isNotEmpty
-                          ? user.username[0].toUpperCase()
-                          : '?',
+                      initials,
                       style: const TextStyle(fontSize: 20, color: Colors.black),
                     )
                   : null,
@@ -49,7 +58,7 @@ class RiderCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _capitalize(user.username),
+                    _capitalize(displayName),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -83,11 +92,19 @@ class RiderCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.grey, size: 20),
+                  icon: const Icon(
+                    Icons.visibility,
+                    color: Colors.blue,
+                    size: 20,
+                  ),
+                  onPressed: onView,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.orange, size: 20),
                   onPressed: onEdit,
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.grey, size: 20),
+                  icon: const Icon(Icons.delete, color: Colors.red, size: 20),
                   onPressed: onDelete,
                 ),
               ],
@@ -98,15 +115,14 @@ class RiderCard extends StatelessWidget {
     );
   }
 
-  Map<String, dynamic> _getStatusInfo(String status) {
+  Map<String, dynamic> _getStatusInfo(String? status) {
     switch (status) {
-      case 'EN_RUTA':
-        return {'text': 'En Ruta', 'color': const Color(0xFF22C55E)};
       case 'JORNADA_ACTIVA':
         return {'text': 'Jornada Activa', 'color': const Color(0xFFFACC15)};
       case 'INACTIVO':
+        return {'text': 'Inactiva', 'color': const Color(0xFF9CA3AF)};
       default:
-        return {'text': 'Inactivo', 'color': const Color(0xFF9CA3AF)};
+        return {'text': 'Sin Estado', 'color': Colors.grey};
     }
   }
 

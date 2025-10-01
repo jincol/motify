@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../domain/models/user.dart';
+import 'package:motify/core/models/user.dart';
 import '../../../../core/services/user_service.dart';
 import '../../../features/auth/application/auth_notifier.dart';
 

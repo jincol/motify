@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:motify/core/widgets/marcar_salida_button.dart';
+import 'package:motify/core/widgets/main_drawer.dart';
+import 'package:motify/core/widgets/panel_app_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:motify/features/auth/application/auth_notifier.dart';
 import 'package:motify/core/services/attendance_service.dart';
@@ -58,17 +60,9 @@ class _MotorizadoDashboardScreenState
     // final authState = ref.watch(authNotifierProvider);
     return Scaffold(
       backgroundColor: const Color(0xFFF8F5F2),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF97316),
-        foregroundColor: Colors.white,
-        leading: IconButton(
-          icon: const FaIcon(FontAwesomeIcons.bars, color: Colors.white),
-          onPressed: () {},
-        ),
-        title: const Text(
-          'Mis Pedidos',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+      drawer: const MainDrawer(),
+      appBar: PanelAppBar(
+        title: 'Mis Pedidos',
         actions: [
           IconButton(
             icon: const FaIcon(FontAwesomeIcons.bell, color: Colors.white),

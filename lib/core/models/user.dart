@@ -7,6 +7,9 @@ class User {
   final String workState;
   final int? grupoId;
   final String? avatarUrl;
+  final String? fullName; // <-- Nuevo campo
+  final bool? isActive;
+  final bool? isSuperuser;
 
   User({
     required this.id,
@@ -15,7 +18,18 @@ class User {
     required this.workState,
     this.grupoId,
     this.avatarUrl,
+    this.fullName,
+    this.isActive,
+    this.isSuperuser,
   });
+
+  String get name {
+    // Si en el futuro tienes nombre/apellido separados, puedes adaptarlo aquí
+    if (fullName != null && fullName!.isNotEmpty) {
+      return fullName!;
+    }
+    return username;
+  }
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
@@ -25,6 +39,9 @@ class User {
       workState: json['work_state'],
       grupoId: json['grupo_id'],
       avatarUrl: json['avatar_url'],
+      fullName: json['full_name'],
+      isActive: json['is_active'],
+      isSuperuser: json['is_superuser'],
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../features/admin_motorized/domain/models/user.dart';
+import 'package:motify/core/models/user.dart';
 
 class UserService {
   static const String _baseUrl = 'http://192.168.31.166:8000/api/v1/users/';

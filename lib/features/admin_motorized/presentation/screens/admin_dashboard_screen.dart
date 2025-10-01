@@ -1,6 +1,6 @@
 import 'package:motify/features/admin_motorized/application/users_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../domain/models/user.dart';
+import 'package:motify/core/models/user.dart';
 import '../widgets/team_member_card.dart';
 import '../widgets/map_placeholder.dart';
 import 'package:flutter/material.dart';

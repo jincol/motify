@@ -29,7 +29,7 @@ class JornadaControlScreen extends ConsumerWidget {
                 context: context,
                 tipo: 'check-in',
                 onSuccess: () {
-                  Navigator.of(context).pop(); // Cierra el loader
+                  Navigator.of(context).pop();
                   Navigator.pushReplacementNamed(context, '/motorizadoPage');
                 },
               );

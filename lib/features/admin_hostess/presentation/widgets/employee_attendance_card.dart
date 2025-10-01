@@ -15,7 +15,7 @@ class EmployeeAttendanceCard extends StatelessWidget {
     required this.initials,
     required this.time,
     this.avatarColor = const Color(0xFFF97316),
-    this.statusColor = const Color(0xFF43A047),
+    this.statusColor = const Color.fromARGB(255, 46, 124, 22),
   });
 
   @override

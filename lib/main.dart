@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:motify/features/admin_hostess/presentation/screens/admin_main_screen.dart';
 import 'features/auth/application/auth_notifier.dart';
 import 'features/auth/application/auth_state.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
@@ -7,7 +8,7 @@ import 'features/auth/presentation/screens/home_screen.dart';
 import 'features/motorizado/presentation/screens/jornada_control_screen.dart';
 import 'features/admin_motorized/presentation/screens/admin_main_screen.dart';
 import 'features/motorizado/presentation/screens/motorizado_dashboard_screen.dart';
-import 'features/admin_hostess/presentation/screens/admin_anfitriona_dashboard_screen.dart';
+import 'features/admin_hostess/presentation/screens/admin_dashboard_screen.dart';
 import 'package:motify/features/anfitriona/presentation/screens/asistencia_anfitriona_screen.dart';
 
 void main() {
@@ -36,7 +37,7 @@ class MotifyApp extends ConsumerWidget {
         // } else if (authState.role?.toLowerCase() == 'super_admin') {
         //   homeWidget = const SuperAdminDashboardScreen();
       } else if (authState.role?.toLowerCase() == 'admin_anfitriona') {
-        homeWidget = const AdminAnfitrionaDashboardScreen();
+        homeWidget = const AdminHostessMainScreen();
       } else {
         homeWidget = const HomeScreen();
       }
@@ -64,6 +65,8 @@ class MotifyApp extends ConsumerWidget {
         '/anfitrionaJornada': (context) => AsistenciaAnfitrionaScreen(),
         '/adminMotorizadoDashboard': (context) =>
             const AdminMotorizadoMainScreen(),
+        '/adminHostessDashboard': (context) =>
+            const AdminHostessMainScreen(), // <-- Agrega esto
       },
     );
   }
