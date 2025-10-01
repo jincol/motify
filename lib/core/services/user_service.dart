@@ -18,6 +18,8 @@ class UserService {
     required String token,
   }) async {
     final Map<String, dynamic> body = {
+      'name': nombre,
+      'lastname': apellido,
       'username': usuario,
       'email': email,
       'full_name': '$nombre $apellido',

@@ -19,6 +19,8 @@ class UserBase(BaseModel):
     username: str = Field(..., min_length=3, max_length=100, description="Nombre de usuario único")
     email: Optional[EmailStr] = Field(None, description="Correo electrónico del usuario") 
     full_name: Optional[str] = Field(None, max_length=255, description="Nombre completo del usuario")
+    name: Optional[str] = Field(None, max_length=100, description="Nombre del usuario")
+    lastname: Optional[str] = Field(None, max_length=100, description="Apellido del usuario")
     role: UserRole = Field(..., description="Rol del usuario en el sistema")
     work_state: WorkState = Field(..., description="Estado de jornada del usuario")
     phone: Optional[str] = None
@@ -27,6 +29,8 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
+    name: str = Field(..., min_length=1, max_length=100, description="Nombre del usuario")
+    lastname: str = Field(..., min_length=1, max_length=100, description="Apellido del usuario")
     password: str = Field(..., min_length=8, description="Contraseña del usuario (mínimo 8 caracteres)")
     is_active: Optional[bool] = True
     is_superuser: Optional[bool] = False
@@ -34,6 +38,8 @@ class UserCreate(UserBase):
     avatar_url: Optional[str] = None  
 
 class UserUpdate(BaseModel):    
+    name: Optional[str] = None
+    lastname: Optional[str] = None
     email: Optional[EmailStr] = None
     full_name: Optional[str] = None
     password: Optional[str] = Field(None, min_length=6, description="Nueva contraseña (opcional, mínimo 6 caracteres)")
