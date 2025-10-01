@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'admin_dashboard_screen.dart';
-import 'admin_team_screen.dart';
-import '../widgets/bottom_nav_bar.dart';
-import '../../../../../core/widgets/main_drawer.dart';
-import '../../../../../core/widgets/panel_app_bar.dart';
+import 'package:motify/core/services/photo_service.dart';
+import 'package:motify/core/services/user_service.dart';
+import 'package:motify/features/admin_hostess/application/users_providers.dart';
+import 'package:motify/features/auth/application/auth_notifier.dart';
+import 'package:motify/features/admin_hostess/presentation/screens/admin_dashboard_screen.dart';
+import 'package:motify/features/admin_hostess/presentation/screens/admin_team_screen.dart';
+import 'package:motify/features/admin_hostess/presentation/widgets/bottom_nav_bar.dart';
+import 'package:motify/core/widgets/main_drawer.dart';
+import 'package:motify/core/widgets/panel_app_bar.dart';
+import 'package:motify/core/widgets/rider_form.dart';
 
 class AdminHostessMainScreen extends ConsumerStatefulWidget {
   const AdminHostessMainScreen({super.key});
@@ -43,7 +48,7 @@ class _AdminHostessMainScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF8F0),
+      backgroundColor: const Color.fromARGB(255, 247, 245, 244),
       appBar: PanelAppBar(
         title: _getTitleForIndex(_selectedIndex),
         actions: [
@@ -59,8 +64,92 @@ class _AdminHostessMainScreenState
           ? FloatingActionButton(
               backgroundColor: const Color(0xFFFF9800),
               child: const Icon(Icons.add, color: Colors.white),
-              onPressed: () {
-                // Acción para agregar anfitriona
+              onPressed: () async {
+                final result = await showModalBottomSheet<bool>(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (modalContext) => RiderForm(
+                    title: 'Agregar Anfitriona',
+                    onSubmit: (data) async {
+                      final authState = ref.read(authNotifierProvider);
+                      if (authState.token != null &&
+                          authState.role == 'ADMIN_ANFITRIONA') {
+                        String? fotoUrl;
+                        if (data['foto'] != null) {
+                          fotoUrl = await PhotoService.uploadPhoto(
+                            data['foto'],
+                            tipo: 'profile',
+                          );
+                        }
+                        final userService = UserService();
+                        final response = await userService.createUser(
+                          nombre: data['nombre'],
+                          apellido: data['apellido'],
+                          usuario: data['usuario'],
+                          email: data['email'],
+                          contrasena: data['contrasena'],
+                          role: 'ANFITRIONA',
+                          telefono: data['telefono'],
+                          // placaUnidad: null, // No enviar para anfitriona
+                          fotoUrl: fotoUrl,
+                          token: authState.token!,
+                        );
+                        if (response.statusCode == 201) {
+                          final _ = ref.refresh(anfitrionaUsersProvider);
+                          Navigator.of(modalContext).pop(true);
+                        } else {
+                          ScaffoldMessenger.of(modalContext).showSnackBar(
+                            SnackBar(content: Text('Error al crear usuario')),
+                          );
+                        }
+                      } else {
+                        ScaffoldMessenger.of(modalContext).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'No hay token. Inicia sesión nuevamente.',
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                );
+                if (result == true) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Usuario creado correctamente',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Colors.orange[500],
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      margin: EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      duration: Duration(seconds: 2),
+                      elevation: 8,
+                    ),
+                  );
+                }
               },
             )
           : null,

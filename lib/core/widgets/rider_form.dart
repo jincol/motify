@@ -165,6 +165,7 @@ class _RiderFormState extends State<RiderForm> {
               isOptional: true,
               keyboardType: TextInputType.phone,
             ),
+            const SizedBox(height: 16),
             _buildTextField(
               controller: _placaController,
               label: 'AB-123 (Opcional)',

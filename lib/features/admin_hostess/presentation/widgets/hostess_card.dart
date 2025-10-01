@@ -118,7 +118,7 @@ class HostessCard extends StatelessWidget {
   Map<String, dynamic> _getStatusInfo(String? status) {
     switch (status) {
       case 'JORNADA_ACTIVA':
-        return {'text': 'Jornada Activa', 'color': const Color(0xFFFACC15)};
+        return {'text': 'Presente', 'color': const Color(0xFFFACC15)};
       case 'INACTIVO':
         return {'text': 'Inactiva', 'color': const Color(0xFF9CA3AF)};
       default:

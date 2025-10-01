@@ -86,7 +86,7 @@ def list_users(
     elif current_user.role == user_schema.UserRole.ADMIN_MOTORIZADO:
         query = query.filter(User.grupo_id == current_user.id, User.role == user_schema.UserRole.MOTORIZADO)
     elif current_user.role == user_schema.UserRole.ADMIN_ANFITRIONA:
-        query = query.filter(User.grupo_id == current_user.grupo_id, User.role == user_schema.UserRole.ANFITRIONA)
+        query = query.filter(User.grupo_id == current_user.id, User.role == user_schema.UserRole.ANFITRIONA)
     else:
         query = query.filter(User.id == current_user.id)
     users = query.offset(skip).limit(limit).all()

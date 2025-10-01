@@ -7,7 +7,7 @@ class User {
   final String workState;
   final int? grupoId;
   final String? avatarUrl;
-  final String? fullName; // <-- Nuevo campo
+  final String? fullName;
   final bool? isActive;
   final bool? isSuperuser;
 
