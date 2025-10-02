@@ -10,6 +10,9 @@ class User {
   final String? fullName;
   final bool? isActive;
   final bool? isSuperuser;
+  final String? email;
+  final String? phone;
+  final String? placaUnidad;
 
   User({
     required this.id,
@@ -21,10 +24,12 @@ class User {
     this.fullName,
     this.isActive,
     this.isSuperuser,
+    this.email,
+    this.phone,
+    this.placaUnidad,
   });
 
   String get name {
-    // Si en el futuro tienes nombre/apellido separados, puedes adaptarlo aquí
     if (fullName != null && fullName!.isNotEmpty) {
       return fullName!;
     }
@@ -42,6 +47,9 @@ class User {
       fullName: json['full_name'],
       isActive: json['is_active'],
       isSuperuser: json['is_superuser'],
+      email: json['email'],
+      phone: json['phone'],
+      placaUnidad: json['placa_unidad'],
     );
   }
 }

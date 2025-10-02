@@ -20,7 +20,6 @@ class WorkState(str, Enum):
     EN_RUTA = "EN_RUTA"
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-
 class User(Base):
     __tablename__ = "users"
 

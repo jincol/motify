@@ -8,8 +8,8 @@ from fastapi.staticfiles import StaticFiles
 from app.api.v1.endpoints import auth as auth_endpoints 
 from app.api.v1.endpoints import users as users_endpoints 
 from app.api.v1.endpoints import photo as photo_endpoints
+from app.api.v1.endpoints import ws_events as ws_events_endpoints
 from app.api.v1.endpoints import attendance as attendance_endpoints
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -23,7 +23,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# fotos_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../..", "fotos"))
 fotos_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "fotos"))
 os.makedirs(fotos_dir, exist_ok=True)
 app.mount("/fotos", StaticFiles(directory=fotos_dir), name="fotos")
@@ -53,10 +52,21 @@ app.include_router(
     prefix=f"{settings.API_V1_STR}",
     tags=["Photo"]
 )
+
+# Router Websocket
+app.include_router(
+    ws_events_endpoints.router,
+    prefix="",  # Sin prefijo para que sea /ws/events
+    tags=["WebSocket"]
+)
+
 # --- Endpoint Raíz (Opcional) ---
 @app.get("/")
 async def root():
     return {"message": f"Welcome to {settings.PROJECT_NAME}!"}
+
+
+
 
 
 # --- Consideraciones Adicionales (Middleware, CORS, etc.) ---

@@ -92,14 +92,6 @@ class HostessCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(
-                    Icons.visibility,
-                    color: Colors.blue,
-                    size: 20,
-                  ),
-                  onPressed: onView,
-                ),
-                IconButton(
                   icon: const Icon(Icons.edit, color: Colors.orange, size: 20),
                   onPressed: onEdit,
                 ),
