@@ -1,29 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:motify/features/shared/application/attendance_history_provider.dart';
 
-// Modelo de asistencia reutilizable
-class Attendance {
-  final String tipo; // 'entrada' o 'salida'
-  final String hora; // Ej: '09:01 AM'
-  final DateTime fecha;
-  Attendance({required this.tipo, required this.hora, required this.fecha});
-}
-
-// (Opcional) Datos de ejemplo para pruebas
-final List<Attendance> exampleAttendances = [
-  Attendance(tipo: 'Entrada', hora: '09:01 AM', fecha: DateTime.now()),
-  Attendance(
-    tipo: 'Salida',
-    hora: '06:05 PM',
-    fecha: DateTime.now().subtract(const Duration(days: 1)),
-  ),
-  Attendance(
-    tipo: 'Entrada',
-    hora: '08:58 AM',
-    fecha: DateTime.now().subtract(const Duration(days: 1)),
-  ),
-];
-
-// Widget genérico para mostrar historial de asistencias
 class AttendanceHistoryList extends StatelessWidget {
   final List<Attendance> attendances;
   final void Function(Attendance) onDetail;
@@ -39,7 +16,7 @@ class AttendanceHistoryList extends StatelessWidget {
     // Agrupa asistencias por día
     Map<String, List<Attendance>> grouped = {};
     for (var a in attendances) {
-      final key = _formatDate(a.fecha);
+      final key = _formatDate(a.timestamp);
       grouped.putIfAbsent(key, () => []).add(a);
     }
     final sortedKeys = grouped.keys.toList()
@@ -60,14 +37,20 @@ class AttendanceHistoryList extends StatelessWidget {
               ),
             ),
           ),
-          ...grouped[day]!.map(
-            (asistencia) => _AsistenciaCard(
-              tipo: asistencia.tipo,
-              hora: asistencia.hora,
-              isEntrada: asistencia.tipo.toLowerCase() == 'entrada',
+          ...grouped[day]!.map((asistencia) {
+            final localDate = asistencia.timestamp.toLocal();
+            return _AsistenciaCard(
+              tipo: asistencia.type.toLowerCase() == 'check-in'
+                  ? 'Entrada'
+                  : 'Salida',
+              hora:
+                  localDate.hour.toString().padLeft(2, '0') +
+                  ':' +
+                  localDate.minute.toString().padLeft(2, '0'),
+              isEntrada: asistencia.type.toLowerCase() == 'check-in',
               onDetailPressed: () => onDetail(asistencia),
-            ),
-          ),
+            );
+          }),
           const SizedBox(height: 16),
         ],
       ],

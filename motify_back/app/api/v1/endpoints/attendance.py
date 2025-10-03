@@ -6,7 +6,8 @@ from app.crud.user import get_user_by_id
 from fastapi import APIRouter, Depends
 from app.api import deps
 import json
-
+from app.crud.attendance import get_attendances_by_user
+from typing import List
 
 router = APIRouter()
 
@@ -41,3 +42,17 @@ async def check_in_attendance(
     )
 
     return AttendanceRead.model_validate(attendance_dict)
+
+@router.get("/", response_model=List[AttendanceRead])
+async def get_user_attendances(
+    db: AsyncSession = Depends(deps.get_async_db),
+    current_user = Depends(deps.get_current_user)
+):
+    attendances = await get_attendances_by_user(db, user_id=current_user.id)
+    return [
+        AttendanceRead.model_validate({
+            **a.__dict__,
+            "type": a.type.value if hasattr(a.type, "value") else a.type
+        })
+        for a in attendances
+    ]

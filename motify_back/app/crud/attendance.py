@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models.attendance import Attendance, AttendanceType
 from app.schemas.attendance import AttendanceCreate
+from sqlalchemy import select
 
 async def create_attendance(db: AsyncSession, user_id: int, attendance_in: AttendanceCreate):
     db_attendance = Attendance(
@@ -15,3 +16,10 @@ async def create_attendance(db: AsyncSession, user_id: int, attendance_in: Atten
     await db.commit()
     await db.refresh(db_attendance)
     return db_attendance
+
+
+async def get_attendances_by_user(db: AsyncSession, user_id: int):
+    result = await db.execute(
+        select(Attendance).where(Attendance.user_id == user_id).order_by(Attendance.timestamp.desc())
+    )
+    return result.scalars().all()

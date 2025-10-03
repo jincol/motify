@@ -3,7 +3,7 @@ from app.db import models
 from fastapi import FastAPI
 from app.db.database import engine
 from app.core.config import settings
-from contextlib import asynccontextmanager # Para lifespan events si los necesitas
+from contextlib import asynccontextmanager 
 from fastapi.staticfiles import StaticFiles
 from app.api.v1.endpoints import auth as auth_endpoints 
 from app.api.v1.endpoints import users as users_endpoints 
@@ -46,6 +46,7 @@ app.include_router(
     prefix=f"{settings.API_V1_STR}/attendance",
     tags=["Attendance"]
 )
+
 #fotos
 app.include_router(
     photo_endpoints.router,
