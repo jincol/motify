@@ -28,13 +28,6 @@ class _AdminHostessMainScreenState
   int _selectedIndex = 0;
   late WebSocketChannel channel;
 
-  final List<Widget> _screens = [
-    AdminAnfitrionaDashboardScreen(),
-    AdminTeamScreen(),
-    Center(child: Text('Geocercas')),
-    Center(child: Text('Reportes')),
-  ];
-
   String _getTitleForIndex(int index) {
     switch (index) {
       case 0:
@@ -94,6 +87,43 @@ class _AdminHostessMainScreenState
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> screens = [
+      AdminAnfitrionaDashboardScreen(),
+      AdminTeamScreen(
+        onUserDeleted: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.delete, color: Colors.white, size: 28),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Anfitriona eliminada correctamente',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.green[600],
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              margin: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              duration: Duration(seconds: 2),
+              elevation: 8,
+            ),
+          );
+        },
+      ),
+      Center(child: Text('Geocercas')),
+      Center(child: Text('Reportes')),
+    ];
+
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 247, 245, 244),
       appBar: PanelAppBar(
@@ -106,7 +136,7 @@ class _AdminHostessMainScreenState
         ],
       ),
       drawer: const MainDrawer(),
-      body: _screens[_selectedIndex],
+      body: screens[_selectedIndex],
       floatingActionButton: _selectedIndex == 1
           ? FloatingActionButton(
               backgroundColor: const Color(0xFFFF9800),

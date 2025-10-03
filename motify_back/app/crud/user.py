@@ -90,6 +90,7 @@ async def delete_user_logically(db: AsyncSession, user_id: int) -> Optional[mode
     user_db_obj = await get_user_by_id(db, user_id=user_id)
     if user_db_obj:
         user_db_obj.is_active = False
+        user_db_obj.work_state = "INACTIVO"
         db.add(user_db_obj)
         await db.commit()
         await db.refresh(user_db_obj)
@@ -98,7 +99,7 @@ async def delete_user_logically(db: AsyncSession, user_id: int) -> Optional[mode
 async def delete_user_physically(db: AsyncSession, user_id: int) -> Optional[models.User]:
     """
     Elimina físicamente un usuario de la base de datos.
-    ¡Usar con precaución debido a posibles problemas de integridad referencial!
+    ¡Usar con precaución debido a posibles problemas de integridad referencial - NO SEAS GILBERTO! 
     """
     user_db_obj = await get_user_by_id(db, user_id=user_id)
     if user_db_obj:

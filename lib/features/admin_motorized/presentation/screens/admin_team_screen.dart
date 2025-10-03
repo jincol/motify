@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:motify/core/providers/admin_users_notifier.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:motify/core/widgets/team_list_view.dart';
 import 'package:motify/core/models/user.dart';
 import '../../application/users_provider.dart';
 import '../widgets/rider_card.dart';
 
+typedef OnUserDeleted = void Function();
+
 class AdminTeamScreen extends ConsumerStatefulWidget {
-  const AdminTeamScreen({super.key});
+  final OnUserDeleted? onUserDeleted;
+  const AdminTeamScreen({super.key, this.onUserDeleted});
 
   @override
   ConsumerState<AdminTeamScreen> createState() => _AdminTeamScreenState();
@@ -83,11 +87,81 @@ class _AdminTeamScreenState extends ConsumerState<AdminTeamScreen> {
               ),
             ),
           ],
-          itemBuilder: (context, user) => RiderCard(
-            user: user,
-            onEdit: () {},
-            onDelete: () {},
-            onView: () {},
+          itemBuilder: (context, user) => Slidable(
+            key: ValueKey(user.id),
+            child: SizedBox(
+              height: 80,
+              child: Slidable(
+                key: ValueKey(user.id),
+                endActionPane: ActionPane(
+                  motion: const DrawerMotion(),
+                  children: [
+                    SlidableAction(
+                      flex: 2,
+                      onPressed: (context) async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Confirmar eliminación'),
+                            content: const Text(
+                              '¿Estás seguro de que deseas eliminar este usuario?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(false),
+                                child: const Text('Cancelar'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(true),
+                                child: const Text(
+                                  'Eliminar',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm == true) {
+                          try {
+                            await ref
+                                .read(adminMotorizedUsersProvider.notifier)
+                                .deleteUser(user.id);
+                            if (widget.onUserDeleted != null) {
+                              widget.onUserDeleted!();
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Error al eliminar usuario: $e',
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        }
+                      },
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      icon: Icons.delete,
+                      label: 'Eliminar',
+                      borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(40),
+                        bottomRight: Radius.circular(40),
+                      ),
+                    ),
+                  ],
+                ),
+                child: RiderCard(
+                  user: user,
+                  onEdit: () {},
+                  onDelete: () {},
+                  onView: () {},
+                ),
+              ),
+            ),
           ),
         );
       },

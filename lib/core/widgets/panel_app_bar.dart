@@ -5,6 +5,7 @@ class PanelAppBar extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget>? actions;
   final Color backgroundColor;
   final Color textColor;
+  final bool showBackArrow;
 
   const PanelAppBar({
     super.key,
@@ -12,6 +13,7 @@ class PanelAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
     this.backgroundColor = const Color(0xFFF97316),
     this.textColor = Colors.white,
+    this.showBackArrow = false,
   });
 
   @override
@@ -21,9 +23,16 @@ class PanelAppBar extends StatelessWidget implements PreferredSizeWidget {
       elevation: 1.0,
       leading: Builder(
         builder: (context) => IconButton(
-          icon: Icon(Icons.menu, color: textColor),
+          icon: Icon(
+            showBackArrow ? Icons.arrow_back : Icons.menu,
+            color: textColor,
+          ),
           onPressed: () {
-            Scaffold.of(context).openDrawer();
+            if (showBackArrow) {
+              Navigator.of(context).maybePop();
+            } else {
+              Scaffold.of(context).openDrawer();
+            }
           },
         ),
       ),

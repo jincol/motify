@@ -89,10 +89,27 @@ async def list_users(
         stmt = stmt.filter(User.grupo_id == current_user.id, User.role == user_schema.UserRole.ANFITRIONA)
     else:
         stmt = stmt.filter(User.id == current_user.id)
+    stmt = stmt.filter(User.is_active == True)
     stmt = stmt.offset(skip).limit(limit)
     result = await db.execute(stmt)
     users = result.scalars().all()
     return users
+
+@router.delete("/{user_id}", response_model=user_schema.UserRead)
+async def delete_user(
+    *,
+    db: AsyncSession = Depends(deps.get_async_db),
+    user_id: int,
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """
+    Elimina lógicamente (desactiva) un usuario.
+    Solo puede ser usado por el admin del grupo o super admin.
+    """
+    user = await crud.user.delete_user_logically(db, user_id=user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return user
 
 # @router.get("/{user_id}", response_model=user_schema.UserRead)
 # async def read_user_by_id(

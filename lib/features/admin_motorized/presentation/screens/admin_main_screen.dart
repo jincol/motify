@@ -41,13 +41,6 @@ class _AdminMotorizadoMainScreenState
 
   WebSocketChannel? _channel;
 
-  final List<Widget> _screens = [
-    AdminMotorizadoDashboardScreen(),
-    AdminTeamScreen(),
-    Center(child: Text('Chat')),
-    Center(child: Text('Otro')),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -57,8 +50,8 @@ class _AdminMotorizadoMainScreenState
         final token = authState.token;
         if (token == null) return;
         final wsUrl = 'ws://192.168.31.166:8000/ws/events?token=$token';
-        _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
-        _channel!.stream.listen(
+        final channel = WebSocketChannel.connect(Uri.parse(wsUrl));
+        channel.stream.listen(
           (message) {
             try {
               final data = jsonDecode(message);
@@ -169,6 +162,43 @@ class _AdminMotorizadoMainScreenState
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> screens = [
+      AdminMotorizadoDashboardScreen(),
+      AdminTeamScreen(
+        onUserDeleted: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.delete, color: Colors.white, size: 28),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Usuario eliminado correctamente',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.green[600],
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              margin: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              duration: Duration(seconds: 2),
+              elevation: 8,
+            ),
+          );
+        },
+      ),
+      Center(child: Text('Chat')),
+      Center(child: Text('Otro')),
+    ];
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F5F2),
       appBar: PanelAppBar(
@@ -181,7 +211,7 @@ class _AdminMotorizadoMainScreenState
         ],
       ),
       drawer: const MainDrawer(),
-      body: _screens[_selectedIndex],
+      body: screens[_selectedIndex],
       floatingActionButton: _selectedIndex == 1
           ? FloatingActionButton(
               backgroundColor: const Color(0xFFF97316),

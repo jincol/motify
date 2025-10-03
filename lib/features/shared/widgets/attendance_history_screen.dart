@@ -12,11 +12,13 @@ class AttendanceHistoryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final attendanceAsync = ref.watch(attendanceHistoryProvider);
     return Scaffold(
-      appBar: const PanelAppBar(title: 'Historial de Asistencia'),
+      appBar: const PanelAppBar(
+        title: 'Historial de Asistencia',
+        showBackArrow: true,
+      ),
       drawer: const MainDrawer(),
       body: Column(
         children: [
-          // Filtro de semana/fecha
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
             child: Row(
@@ -68,14 +70,12 @@ class AttendanceHistoryScreen extends ConsumerWidget {
               data: (attendances) => AttendanceHistoryList(
                 attendances: attendances,
                 onDetail: (attendance) {
-                  final localDate = attendance.timestamp.toLocal();
-
                   showDialog(
                     context: context,
                     builder: (_) => AlertDialog(
                       title: Text(attendance.type),
                       content: Text(
-                        'Hora: ${localDate.hour.toString().padLeft(2, '0')}:${localDate.minute.toString().padLeft(2, '0')}'
+                        'Hora: ${attendance.timestamp.hour.toString().padLeft(2, '0')}:${attendance.timestamp.minute.toString().padLeft(2, '0')}'
                         '\nFecha: ${attendance.timestamp.day.toString().padLeft(2, '0')}/${attendance.timestamp.month.toString().padLeft(2, '0')}/${attendance.timestamp.year}',
                       ),
                       actions: [

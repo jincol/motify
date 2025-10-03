@@ -38,6 +38,22 @@ class adminUsersProvider extends StateNotifier<AsyncValue<List<User>>> {
   }
 
   Future<void> refresh() async => _loadUsers();
+
+  Future<void> deleteUser(int userId) async {
+    final authState = ref.read(authNotifierProvider);
+    final token = authState.token;
+    if (token == null || token.isEmpty) {
+      throw Exception('No hay token de autenticación para eliminar usuario.');
+    }
+    final response = await UserService().deleteUser(
+      userId: userId.toString(),
+      token: token,
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Error al eliminar usuario: ${response.body}');
+    }
+    await _loadUsers();
+  }
 }
 
 final adminHostessUsersProvider =

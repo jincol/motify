@@ -75,4 +75,18 @@ class UserService {
     );
     return response;
   }
+
+  Future<http.Response> deleteUser({
+    required String userId,
+    required String token,
+  }) async {
+    final response = await http.delete(
+      Uri.parse('$_baseUrl$userId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    return response;
+  }
 }

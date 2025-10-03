@@ -30,17 +30,24 @@ class HostessCard extends StatelessWidget {
         : '?';
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.zero,
       elevation: 2,
       shadowColor: Colors.black12,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(40),
+          bottomLeft: Radius.circular(40),
+          topRight: Radius.circular(0),
+          bottomRight: Radius.circular(0),
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Row(
           children: [
             CircleAvatar(
               radius: 24,
-              backgroundColor: Colors.orange.shade100,
+              backgroundColor: Colors.grey.shade200,
               backgroundImage:
                   (user.avatarUrl != null && user.avatarUrl!.isNotEmpty)
                   ? NetworkImage(user.avatarUrl!)
@@ -92,11 +99,11 @@ class HostessCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.orange, size: 20),
+                  icon: const Icon(Icons.edit, color: Colors.grey, size: 20),
                   onPressed: onEdit,
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                  icon: const Icon(Icons.delete, color: Colors.grey, size: 20),
                   onPressed: onDelete,
                 ),
               ],

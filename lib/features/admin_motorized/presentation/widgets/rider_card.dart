@@ -19,10 +19,17 @@ class RiderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final statusInfo = _getStatusInfo(user.workState);
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.zero,
       elevation: 2,
       shadowColor: Colors.black12,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(40),
+          bottomLeft: Radius.circular(40),
+          topRight: Radius.circular(0),
+          bottomRight: Radius.circular(0),
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Row(
