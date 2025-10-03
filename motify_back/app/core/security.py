@@ -57,19 +57,15 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-# Opcional: Función para decodificar tokens y obtener el payload (la usaremos en deps.py)
-# La incluimos aquí por completitud, aunque su uso principal será en las dependencias.
 def decode_token_payload(token: str) -> Optional[dict]:
     """
     Decodifica un token JWT y devuelve su payload.
-    Maneja excepciones si el token es inválido o ha expirado.
-
     :param token: El token JWT a decodificar.
     :return: El payload del token como un diccionario, o None si hay un error.
     """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except JWTError: # Esto captura varios errores: token expirado, firma inválida, etc.
+    except JWTError: #<- me captura el error de token invalido
         return None
 

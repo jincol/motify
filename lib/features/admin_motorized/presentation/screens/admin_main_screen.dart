@@ -1,4 +1,4 @@
-import 'package:motify/features/admin_motorized/application/users_provider.dart';
+import 'package:motify/core/providers/admin_users_notifier.dart';
 import 'package:motify/features/auth/application/auth_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/services/photo_service.dart';
@@ -9,6 +9,8 @@ import '../../../../core/widgets/rider_form.dart';
 import 'package:flutter/material.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_team_screen.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'dart:convert';
 
 String _getTitleForIndex(int index) {
   switch (index) {
@@ -37,12 +39,59 @@ class _AdminMotorizadoMainScreenState
     extends ConsumerState<AdminMotorizadoMainScreen> {
   int _selectedIndex = 0;
 
+  WebSocketChannel? _channel;
+
   final List<Widget> _screens = [
     AdminMotorizadoDashboardScreen(),
     AdminTeamScreen(),
     Center(child: Text('Chat')),
     Center(child: Text('Otro')),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration.zero, () {
+      try {
+        final authState = ref.read(authNotifierProvider);
+        final token = authState.token;
+        if (token == null) return;
+        final wsUrl = 'ws://192.168.31.166:8000/ws/events?token=$token';
+        _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
+        _channel!.stream.listen(
+          (message) {
+            try {
+              final data = jsonDecode(message);
+              if (data['type'] == 'estado_actualizado') {
+                final usuarioId = data['usuario_id'];
+                final nuevoEstado = data['nuevo_estado'];
+                ref
+                    .read(adminMotorizedUsersProvider.notifier)
+                    .updateUserState(usuarioId, nuevoEstado);
+              }
+            } catch (e) {
+              print('Error procesando mensaje WebSocket: $e');
+            }
+          },
+          onError: (error) {
+            print('Error en WebSocket: $error');
+          },
+          onDone: () {
+            print('WebSocket cerrado');
+          },
+        );
+      } catch (e, st) {
+        print('Error al conectar WebSocket: $e\n$st');
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _channel?.sink.close();
+    super.dispose();
+  }
+
   void _onAddMotorizado() async {
     final result = await showModalBottomSheet<bool>(
       context: context,
@@ -73,7 +122,7 @@ class _AdminMotorizadoMainScreenState
               token: authState.token!,
             );
             if (response.statusCode == 201) {
-              ref.refresh(motorizadoUsersProvider);
+              ref.read(adminMotorizedUsersProvider.notifier).refresh();
               Navigator.of(modalContext).pop(true);
             } else {
               ScaffoldMessenger.of(

@@ -36,6 +36,36 @@ class User {
     return username;
   }
 
+  User copyWith({
+    int? id,
+    String? username,
+    String? role,
+    String? workState,
+    int? grupoId,
+    String? avatarUrl,
+    String? fullName,
+    bool? isActive,
+    bool? isSuperuser,
+    String? email,
+    String? phone,
+    String? placaUnidad,
+  }) {
+    return User(
+      id: id ?? this.id,
+      username: username ?? this.username,
+      role: role ?? this.role,
+      workState: workState ?? this.workState,
+      grupoId: grupoId ?? this.grupoId,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      fullName: fullName ?? this.fullName,
+      isActive: isActive ?? this.isActive,
+      isSuperuser: isSuperuser ?? this.isSuperuser,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      placaUnidad: placaUnidad ?? this.placaUnidad,
+    );
+  }
+
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'],

@@ -43,7 +43,7 @@ class AdminMotorizadoDashboardScreen extends ConsumerWidget {
                   Expanded(
                     child: KpiCard(
                       title: 'Pedidos Completados',
-                      value: '84', // Placeholder
+                      value: '84',
                       compact: true,
                     ),
                   ),

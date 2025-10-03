@@ -1,11 +1,14 @@
 Documento Funcional y Técnico – App Asistencia Motorizados
 Versión 2.8 (Flujos Detallados y Menú) – Flutter (Android/iOS) – Backend local con futura integración Odoo
+
+El backend debe ser completamente asíncrono (async) en endpoints, dependencias y acceso a base de datos.
+
 1. Introducción
 App móvil para trazabilidad de motorizados y control de asistencia de anfitrionas y motorizados, con roles diferenciados.
 
 Diseñada para operar con y sin conexión a internet, guardando los datos de evidencia localmente para sincronizarlos automáticamente al recuperar la señal.
 
-Fotos comprimidas se suben a Cloud Storage (CONTABO).
+todo el proyecto se subira a contabo donde esta la DB,El codigo backen y la carpeta de fotos 
 
 La base de datos solo guarda la URL de la foto y la metadata asociada (usuario, pedido/asistencia, hora, GPS).
 

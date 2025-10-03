@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:motify/core/providers/admin_users_notifier.dart';
 import 'package:motify/core/widgets/team_list_view.dart';
 import 'package:motify/core/models/user.dart';
 import '../../application/users_provider.dart';
@@ -22,7 +23,7 @@ class _AdminTeamScreenState extends ConsumerState<AdminTeamScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final usersAsync = ref.watch(motorizadoUsersProvider);
+    final usersAsync = ref.watch(adminMotorizedUsersProvider);
 
     return usersAsync.when(
       data: (users) {

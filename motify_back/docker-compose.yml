@@ -30,7 +30,8 @@ services:
       db_asistencia: # Se asegura que el servicio de BD se inicie y esté saludable antes que la API
         condition: service_healthy # Espera a que el healthcheck de la BD pase
     environment:
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-admin_motorizados_dev}:${POSTGRES_PASSWORD:-supersecretdevpassword}@db_asistencia:5432/${POSTGRES_DB:-asistencia_motorizados_dev_db}"
+      # DATABASE_URL: "postgresql://${POSTGRES_USER:-admin_motorizados_dev}:${POSTGRES_PASSWORD:-supersecretdevpassword}@db_asistencia:5432/${POSTGRES_DB:-asistencia_motorizados_dev_db}"
+      DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER:-admin_motorizados_dev}:${POSTGRES_PASSWORD:-supersecretdevpassword}@db_asistencia:5432/${POSTGRES_DB:-asistencia_motorizados_dev_db}"
       # Otros secretos y configuraciones para tu API
       SECRET_KEY: ${SECRET_KEY:-your_super_secret_key_for_jwt_CHANGE_IT} # Para JWT
       ALGORITHM: ${ALGORITHM:-HS256}

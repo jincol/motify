@@ -1,65 +1,52 @@
-# app/api/deps.py
-
-from typing import Generator, Optional 
-
+from typing import Optional, AsyncGenerator
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer 
-from sqlalchemy.orm import Session
+from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.database import AsyncSessionLocal
+from app.core import security
+from app.core.config import settings
+from app import crud
+from app.db.models import User
 
-from app.db.database import SessionLocal
-from app.core import security 
-from app.core.config import settings 
-from app import crud # Correcto para acceder a crud.get_user_by_username
-from app.db.models import User # Importamos directamente el modelo User
-
-# --- Dependencia para obtener la sesión de BD (ya la tienes) ---
-def get_db() -> Generator[Session, None, None]:
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# --- Dependencia para obtener la sesión async de BD ---
+async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        yield session
 
 oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/auth/token" 
+    tokenUrl=f"{settings.API_V1_STR}/auth/token"
 )
 
-def get_current_user(
-    db: Session = Depends(get_db), 
+async def get_current_user(
+    db: AsyncSession = Depends(get_async_db),
     token: str = Depends(oauth2_scheme)
-) -> User: 
+) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="No se pudieron validar las credenciales",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    
-    payload = security.decode_token_payload(token) 
-    if payload is None: 
+    payload = security.decode_token_payload(token)
+    if payload is None:
         raise credentials_exception
-    
     username: Optional[str] = payload.get("sub")
     if username is None:
         raise credentials_exception
-    
-    user = crud.get_user_by_username(db, username=username) 
-    
+    user = await crud.get_user_by_username(db, username=username)
     if user is None:
-        raise credentials_exception 
-            
+        raise credentials_exception
     return user
 
-def get_current_active_superuser(
-    current_user: User = Depends(get_current_user), # Ahora usa User directamente
-) -> User: # Ahora usa User directamente
+async def get_current_active_superuser(
+    current_user: User = Depends(get_current_user),
+) -> User:
     if not current_user.is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Cuenta inactiva"
         )
     if not current_user.is_superuser:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
+            status_code=status.HTTP_403_FORBIDDEN,
             detail="El usuario no tiene suficientes privilegios"
         )
     return current_user
-

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:motify/core/widgets/team_list_view.dart';
-import 'package:motify/features/admin_hostess/application/users_providers.dart';
+// import 'package:motify/features/admin_hostess/application/users_providers.dart';
+import 'package:motify/core/providers/admin_users_notifier.dart';
 import '../widgets/hostess_card.dart';
 import 'anfitriona_detail_page.dart';
 
@@ -10,7 +11,7 @@ class AdminTeamScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final usersAsync = ref.watch(anfitrionaUsersProvider);
+    final usersAsync = ref.watch(adminHostessUsersProvider);
 
     return usersAsync.when(
       data: (users) => TeamListView(
@@ -29,7 +30,7 @@ class AdminTeamScreen extends ConsumerWidget {
             user: user,
             onEdit: () {},
             onDelete: () {},
-            onView: () {}, // Este ya no se usaría
+            onView: () {},
           ),
         ),
       ),
