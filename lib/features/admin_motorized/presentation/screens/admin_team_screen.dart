@@ -4,7 +4,7 @@ import 'package:motify/core/providers/admin_users_notifier.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:motify/core/widgets/team_list_view.dart';
 import 'package:motify/core/models/user.dart';
-import '../../application/users_provider.dart';
+import 'package:motify/core/widgets/confirmation_dialog.dart';
 import '../widgets/rider_card.dart';
 
 typedef OnUserDeleted = void Function();
@@ -101,24 +101,10 @@ class _AdminTeamScreenState extends ConsumerState<AdminTeamScreen> {
                       onPressed: (context) async {
                         final confirm = await showDialog<bool>(
                           context: context,
-                          builder: (ctx) => AlertDialog(
-                            title: const Text('Confirmar eliminación'),
-                            content: const Text(
-                              '¿Estás seguro de que deseas eliminar este usuario?',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(ctx).pop(false),
-                                child: const Text('Cancelar'),
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.of(ctx).pop(true),
-                                child: const Text(
-                                  'Eliminar',
-                                  style: TextStyle(color: Colors.red),
-                                ),
-                              ),
-                            ],
+                          builder: (ctx) => ConfirmationDialog(
+                            title: 'Confirmar eliminación',
+                            content:
+                                '¿Estás seguro de que deseas eliminar este usuario?',
                           ),
                         );
                         if (confirm == true) {

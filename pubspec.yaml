@@ -21,12 +21,7 @@ version: 1.0.0+1
 environment:
   sdk: ^3.9.2
 
-# Dependencies specify other packages that your package needs in order to work.
-# To automatically upgrade your package dependencies to the latest versions
-# consider running `flutter pub upgrade --major-versions`. Alternatively,
-# dependencies can be manually updated by changing the version numbers below to
-# the latest version available on pub.dev. To see which dependencies have newer
-# versions available, run `flutter pub outdated`.
+
 dependencies:
   flutter:
     sdk: flutter
@@ -42,6 +37,8 @@ dependencies:
   web_socket_channel: ^2.4.0
   dio: ^5.0.0
   http: ^1.2.0
+  intl: ^0.18.0
+
   
 dev_dependencies:
   flutter_test:

@@ -10,6 +10,7 @@ import 'package:motify/features/admin_hostess/presentation/widgets/bottom_nav_ba
 import 'package:motify/core/widgets/main_drawer.dart';
 import 'package:motify/core/widgets/panel_app_bar.dart';
 import 'package:motify/core/widgets/rider_form.dart';
+import 'package:motify/features/shared/application/group_attendance_provider.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
 import 'package:motify/core/providers/admin_users_notifier.dart';
@@ -49,27 +50,22 @@ class _AdminHostessMainScreenState
     try {
       final authState = ref.read(authNotifierProvider);
       final token = authState.token;
-      print('Intentando conectar WebSocket con token: $token');
       channel = WebSocketChannel.connect(
         Uri.parse('ws://192.168.31.166:8000/ws/events?token=$token'),
       );
-      print('WebSocket conectado, esperando mensajes...');
       channel.stream.listen(
         (message) {
-          print('Mensaje WebSocket recibido: $message');
           final data = jsonDecode(message);
           if (data['type'] == 'estado_actualizado') {
             final usuarioId = data['usuario_id'];
             final nuevoEstado = data['nuevo_estado'];
-            print('Actualizando estado usuario $usuarioId a $nuevoEstado');
             ref
                 .read(adminHostessUsersProvider.notifier)
                 .updateUserState(usuarioId, nuevoEstado);
+            ref.refresh(groupAttendanceTodayProvider);
           }
         },
-        onError: (error) {
-          print('Error en WebSocket: $error');
-        },
+        onError: (error) {},
         onDone: () {
           print('WebSocket cerrado');
         },
@@ -175,6 +171,7 @@ class _AdminHostessMainScreenState
                           await ref
                               .read(adminHostessUsersProvider.notifier)
                               .refresh();
+                          ref.refresh(groupAttendanceTodayProvider);
                           Navigator.of(modalContext).pop(true);
                         } else {
                           ScaffoldMessenger.of(modalContext).showSnackBar(
@@ -238,6 +235,11 @@ class _AdminHostessMainScreenState
           setState(() {
             _selectedIndex = index;
           });
+          if (index == 0) {
+            // 0 es el tab del dashboard
+            ref.read(adminHostessUsersProvider.notifier).refresh();
+            ref.refresh(groupAttendanceTodayProvider);
+          }
         },
       ),
     );

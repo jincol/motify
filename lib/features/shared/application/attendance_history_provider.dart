@@ -5,6 +5,7 @@ import 'package:motify/features/auth/application/auth_notifier.dart';
 
 class Attendance {
   final int id;
+  final int userId;
   final String type;
   final String photoUrl;
   final double gpsLat;
@@ -14,6 +15,7 @@ class Attendance {
 
   Attendance({
     required this.id,
+    required this.userId,
     required this.type,
     required this.photoUrl,
     required this.gpsLat,
@@ -24,6 +26,7 @@ class Attendance {
 
   factory Attendance.fromJson(Map<String, dynamic> json) => Attendance(
     id: json['id'],
+    userId: json['user_id'],
     type: json['type'],
     photoUrl: json['photo_url'],
     gpsLat: (json['gps_lat'] as num).toDouble(),
@@ -52,6 +55,3 @@ final attendanceHistoryProvider = FutureProvider.autoDispose<List<Attendance>>((
     throw Exception('Error loading attendance history');
   }
 });
-
-// NOTA: Debes tener un provider llamado authTokenProvider que devuelva el token JWT actual.
-// Si usas Riverpod para auth, normalmente ya lo tienes en tu capa de autenticación.

@@ -7,6 +7,7 @@ class EmployeeAttendanceCard extends StatelessWidget {
   final String time;
   final Color avatarColor;
   final Color statusColor;
+  final String? avatarUrl;
 
   const EmployeeAttendanceCard({
     super.key,
@@ -16,6 +17,7 @@ class EmployeeAttendanceCard extends StatelessWidget {
     required this.time,
     this.avatarColor = const Color(0xFFF97316),
     this.statusColor = const Color.fromARGB(255, 46, 124, 22),
+    this.avatarUrl,
   });
 
   @override
@@ -30,13 +32,18 @@ class EmployeeAttendanceCard extends StatelessWidget {
             CircleAvatar(
               radius: 24,
               backgroundColor: avatarColor,
-              child: Text(
-                initials,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              backgroundImage: avatarUrl != null && avatarUrl!.isNotEmpty
+                  ? NetworkImage(avatarUrl!)
+                  : null,
+              child: (avatarUrl == null || avatarUrl!.isEmpty)
+                  ? Text(
+                      initials,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : null,
             ),
             const SizedBox(width: 16),
             Expanded(

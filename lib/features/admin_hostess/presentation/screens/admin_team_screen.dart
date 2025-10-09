@@ -4,6 +4,7 @@ import 'package:motify/core/widgets/team_list_view.dart';
 // import 'package:motify/features/admin_hostess/application/users_providers.dart';
 import 'package:motify/core/providers/admin_users_notifier.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:motify/features/shared/application/group_attendance_provider.dart';
 import '../widgets/hostess_card.dart';
 import 'anfitriona_detail_page.dart';
 
@@ -61,6 +62,7 @@ class _AdminTeamScreenState extends ConsumerState<AdminTeamScreen> {
                       await ref
                           .read(adminHostessUsersProvider.notifier)
                           .deleteUser(user.id);
+                      ref.refresh(groupAttendanceTodayProvider);
                       if (widget.onUserDeleted != null) {
                         widget.onUserDeleted!();
                       }

@@ -4,14 +4,14 @@ import 'package:motify/core/models/user.dart';
 class HostessCard extends StatelessWidget {
   final User user;
   final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final VoidCallback? onDelete;
   final VoidCallback onView;
 
   const HostessCard({
     super.key,
     required this.user,
     required this.onEdit,
-    required this.onDelete,
+    this.onDelete,
     required this.onView,
   });
 
@@ -101,10 +101,6 @@ class HostessCard extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.edit, color: Colors.grey, size: 20),
                   onPressed: onEdit,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.grey, size: 20),
-                  onPressed: onDelete,
                 ),
               ],
             ),
