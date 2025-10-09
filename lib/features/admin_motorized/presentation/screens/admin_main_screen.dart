@@ -1,4 +1,5 @@
 import 'package:motify/core/providers/admin_users_notifier.dart';
+import 'package:motify/features/admin_motorized/application/users_provider.dart';
 import 'package:motify/features/auth/application/auth_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/services/photo_service.dart';
@@ -61,6 +62,7 @@ class _AdminMotorizadoMainScreenState
                 ref
                     .read(adminMotorizedUsersProvider.notifier)
                     .updateUserState(usuarioId, nuevoEstado);
+                ref.refresh(motorizadoUsersProvider);
               }
             } catch (e) {
               print('Error procesando mensaje WebSocket: $e');
@@ -117,6 +119,7 @@ class _AdminMotorizadoMainScreenState
             if (response.statusCode == 201) {
               ref.read(adminMotorizedUsersProvider.notifier).refresh();
               Navigator.of(modalContext).pop(true);
+              ref.refresh(motorizadoUsersProvider);
             } else {
               ScaffoldMessenger.of(
                 modalContext,
@@ -225,6 +228,10 @@ class _AdminMotorizadoMainScreenState
           setState(() {
             _selectedIndex = index;
           });
+          if (index == 0) {
+            // 0 es el tab del dashboard
+            ref.refresh(motorizadoUsersProvider);
+          }
         },
         type: BottomNavigationBarType.fixed,
         selectedItemColor: const Color(0xFFF97316),
