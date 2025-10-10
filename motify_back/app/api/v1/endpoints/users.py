@@ -44,8 +44,15 @@ async def create_user_endpoint(
         if existing_user_by_email:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"El correo electrónico '{user_in.email}' ya está en uso.",
+                detail=f"El correo electrónico  ya está en uso.",
             )
+    
+    if len(user_in.password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La contraseña debe tener al menos 8 caracteres.",
+        )
+
     user_in.grupo_id = current_user.id
     user = await crud.user.create_user(db=db, user_in=user_in)
     return user
@@ -111,6 +118,8 @@ async def delete_user(
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return user
 
+from sqlalchemy.exc import IntegrityError
+
 @router.put("/{user_id}", response_model=user_schema.UserRead)
 async def update_user_endpoint(
     *,
@@ -119,14 +128,41 @@ async def update_user_endpoint(
     user_in: user_schema.UserUpdate,
     current_user: User = Depends(deps.get_current_user),
 ) -> Any:
-    """
-    Actualiza un usuario existente.
-    """
     db_user = await crud.user.get_user_by_id(db, user_id=user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     if current_user.role != "SUPER_ADMIN":
         if db_user.grupo_id != current_user.id:
             raise HTTPException(status_code=403, detail="No tienes permiso para editar este usuario")
-    user = await crud.user.update_user(db, db_user, user_in)
-    return user
+
+    if user_in.username and user_in.username != db_user.username:
+        existing_user = await crud.user.get_user_by_username(db, username=user_in.username)
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"El nombre de usuario '{user_in.username}' ya está en uso.",
+            )
+
+    if user_in.email and user_in.email != db_user.email:
+        existing_email = await crud.user.get_user_by_email(db, email=user_in.email)
+        if existing_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"El correo electrónico ya está en uso.",
+            )
+
+    if user_in.password and len(user_in.password) < 7:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La contraseña debe tener al menos 8 caracteres.",
+        )
+
+    try:
+        user = await crud.user.update_user(db, db_user, user_in)
+        return user
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="El nombre de usuario o correo ya está en uso."
+        )

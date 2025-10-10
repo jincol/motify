@@ -31,7 +31,7 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     name: str = Field(..., min_length=1, max_length=100, description="Nombre del usuario")
     lastname: str = Field(..., min_length=1, max_length=100, description="Apellido del usuario")
-    password: str = Field(..., min_length=8, description="Contraseña del usuario (mínimo 8 caracteres)")
+    password: str = Field(..., description="Contraseña del usuario (mínimo 8 caracteres)")
     is_active: Optional[bool] = True
     is_superuser: Optional[bool] = False
     work_state: Optional[WorkState] = WorkState.INACTIVO  
@@ -45,7 +45,7 @@ class UserUpdate(BaseModel):
     username: Optional[str] = None
     phone: Optional[str] = None
     placa_unidad: Optional[str] = None
-    password: Optional[str] = Field(None, min_length=6, description="Nueva contraseña (opcional, mínimo 6 caracteres)")
+    password: Optional[str] = Field(None, description="Nueva contraseña (opcional, mínimo 6 caracteres)")
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None
     is_superuser: Optional[bool] = None

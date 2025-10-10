@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:motify/core/providers/admin_users_notifier.dart';
@@ -149,85 +151,139 @@ class _AdminTeamScreenState extends ConsumerState<AdminTeamScreen> {
                     await showModalBottomSheet(
                       context: context,
                       isScrollControlled: true,
-                      builder: (modalContext) => RiderForm(
-                        title: 'Editar Motorizado',
-                        initialNombre: user.name,
-                        initialApellido: user.lastName,
-                        initialEmail: user.email,
-                        initialUsuario: user.username,
-                        initialTelefono: user.phone,
-                        initialPlaca: user.placaUnidad,
-                        initialAvatarUrl: user.avatarUrl,
-                        showPlaca: true,
-                        isEditMode: true,
-                        onSubmit: (data) async {
-                          final token = ref.read(authNotifierProvider).token;
-                          final userId = user.id.toString();
+                      builder: (modalContext) => Scaffold(
+                        backgroundColor: Colors.transparent,
+                        body: RiderForm(
+                          title: 'Editar Motorizado',
+                          initialNombre: user.name,
+                          initialApellido: user.lastName,
+                          initialEmail: user.email,
+                          initialUsuario: user.username,
+                          initialTelefono: user.phone,
+                          initialPlaca: user.placaUnidad,
+                          initialAvatarUrl: user.avatarUrl,
+                          showPlaca: true,
+                          isEditMode: true,
+                          onSubmit: (data) async {
+                            final token = ref.read(authNotifierProvider).token;
+                            final userId = user.id.toString();
 
-                          if (token == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'No se encontró el token de sesión',
-                                ),
-                              ),
-                            );
-                            return;
-                          }
-
-                          final fieldsToUpdate = {
-                            'name': data['nombre'],
-                            'lastname': data['apellido'],
-                            'email': data['email'],
-                            'username': data['usuario'],
-
-                            'phone': data['telefono'],
-                            'placa_unidad': data['placa_unidad'],
-                            'avatar_url': data['foto'],
-                          };
-
-                          fieldsToUpdate['full_name'] =
-                              '${data['nombre']} ${data['apellido']}';
-
-                          fieldsToUpdate.removeWhere(
-                            (key, value) => value == null || value == '',
-                          );
-
-                          if (data['contrasena'] != null &&
-                              data['contrasena'].toString().isNotEmpty) {
-                            fieldsToUpdate['password'] = data['contrasena'];
-                          }
-
-                          print('DEBUG fieldsToUpdate:');
-                          fieldsToUpdate.forEach((k, v) => print('$k: $v'));
-                          final response = await UserService().updateUser(
-                            userId: userId,
-                            fieldsToUpdate: fieldsToUpdate,
-                            token: token,
-                          );
-
-                          if (response.statusCode == 200) {
-                            if (context.mounted) {
-                              Navigator.of(modalContext).pop();
-                              ref.refresh(adminMotorizedUsersProvider);
+                            if (token == null) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text(
-                                    'Usuario actualizado correctamente',
+                                    'No se encontró el token de sesión',
                                   ),
                                 ),
                               );
+                              return;
                             }
-                          } else {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Error: ${response.body}'),
-                                ),
-                              );
+
+                            final fieldsToUpdate = {
+                              'name': data['nombre'],
+                              'lastname': data['apellido'],
+                              'email': data['email'],
+                              'username': data['usuario'],
+
+                              'phone': data['telefono'],
+                              'placa_unidad': data['placa_unidad'],
+                              'avatar_url': data['foto'],
+                              // agrega otros campos si es necesario
+                            };
+
+                            fieldsToUpdate.removeWhere(
+                              (key, value) => value == null || value == '',
+                            );
+
+                            if (data['contrasena'] != null &&
+                                data['contrasena'].toString().isNotEmpty) {
+                              fieldsToUpdate['password'] = data['contrasena'];
                             }
-                          }
-                        },
+
+                            print('DEBUG fieldsToUpdate:');
+                            fieldsToUpdate.forEach((k, v) => print('$k: $v'));
+                            final response = await UserService().updateUser(
+                              userId: userId,
+                              fieldsToUpdate: fieldsToUpdate,
+                              token: token,
+                            );
+
+                            if (response.statusCode == 200) {
+                              if (context.mounted) {
+                                Navigator.of(modalContext).pop();
+                                ref.refresh(adminMotorizedUsersProvider);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Usuario actualizado correctamente',
+                                    ),
+                                  ),
+                                );
+                              }
+                            } else {
+                              if (modalContext.mounted) {
+                                String errorMsg;
+                                try {
+                                  final decoded = jsonDecode(response.body);
+                                  if (decoded is Map &&
+                                      decoded.containsKey('detail')) {
+                                    final detail = decoded['detail'];
+                                    if (detail is List && detail.isNotEmpty) {
+                                      errorMsg =
+                                          detail[0]['msg'] ??
+                                          'Error de validación';
+                                    } else if (detail is String) {
+                                      errorMsg = detail;
+                                    } else {
+                                      errorMsg = 'Ocurrió un error inesperado';
+                                    }
+                                  } else {
+                                    errorMsg = 'Ocurrió un error inesperado';
+                                  }
+                                } catch (_) {
+                                  errorMsg = 'Ocurrió un error inesperado';
+                                }
+                                ScaffoldMessenger.of(modalContext).showSnackBar(
+                                  SnackBar(
+                                    content: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.error_outline,
+                                          color: Colors.white,
+                                          size: 24,
+                                        ),
+                                        SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            errorMsg,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                              fontSize: 13,
+                                            ),
+                                            maxLines: 3,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    backgroundColor: Colors.red[700],
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    margin: EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 16,
+                                    ),
+                                    duration: Duration(seconds: 2),
+                                    elevation: 10,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                        ),
                       ),
                     );
                   },

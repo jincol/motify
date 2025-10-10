@@ -91,42 +91,94 @@ class _AdminMotorizadoMainScreenState
     final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      builder: (modalContext) => RiderForm(
-        title: 'Agregar Motorizado',
-        onSubmit: (data) async {
-          final authState = ref.read(authNotifierProvider);
-          if (authState.role == 'ADMIN_MOTORIZADO') {
-            String? fotoUrl = data['foto'];
-            final userService = UserService();
-            final response = await userService.createUser(
-              nombre: data['nombre'],
-              apellido: data['apellido'],
-              usuario: data['usuario'],
-              email: data['email'],
-              contrasena: data['contrasena'],
-              role: 'MOTORIZADO',
-              telefono: data['telefono'],
-              placaUnidad: data['placa_unidad'],
-              fotoUrl: fotoUrl,
-              token: authState.token!,
-            );
-            if (response.statusCode == 201) {
-              ref.read(adminMotorizedUsersProvider.notifier).refresh();
-              Navigator.of(modalContext).pop(true);
-              ref.refresh(motorizadoUsersProvider);
+      builder: (modalContext) => Scaffold(
+        backgroundColor: Colors.transparent,
+        body: RiderForm(
+          title: 'Agregar Motorizado',
+          onSubmit: (data) async {
+            final authState = ref.read(authNotifierProvider);
+            if (authState.role == 'ADMIN_MOTORIZADO') {
+              String? fotoUrl = data['foto'];
+              final userService = UserService();
+              final response = await userService.createUser(
+                nombre: data['nombre'],
+                apellido: data['apellido'],
+                usuario: data['usuario'],
+                email: data['email'],
+                contrasena: data['contrasena'],
+                role: 'MOTORIZADO',
+                telefono: data['telefono'],
+                placaUnidad: data['placa_unidad'],
+                fotoUrl: fotoUrl,
+                token: authState.token!,
+              );
+              if (response.statusCode == 201) {
+                ref.read(adminMotorizedUsersProvider.notifier).refresh();
+                Navigator.of(modalContext).pop(true);
+                ref.refresh(motorizadoUsersProvider);
+              } else {
+                String errorMsg;
+                try {
+                  final decoded = jsonDecode(response.body);
+                  if (decoded is Map && decoded.containsKey('detail')) {
+                    final detail = decoded['detail'];
+                    if (detail is List && detail.isNotEmpty) {
+                      errorMsg = detail[0]['msg'] ?? 'Error de validación';
+                    } else if (detail is String) {
+                      errorMsg = detail;
+                    } else {
+                      errorMsg = 'Ocurrió un error inesperado';
+                    }
+                  } else {
+                    errorMsg = 'Ocurrió un error inesperado';
+                  }
+                } catch (_) {
+                  errorMsg = 'Ocurrió un error inesperado';
+                }
+                ScaffoldMessenger.of(modalContext).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            errorMsg,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontSize: 13, // Letra un poco más pequeña
+                            ),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: Colors.red[700],
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    margin: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    duration: Duration(seconds: 2),
+                    elevation: 10,
+                  ),
+                );
+              }
             } else {
-              ScaffoldMessenger.of(
-                modalContext,
-              ).showSnackBar(SnackBar(content: Text('Error al crear usuario')));
+              ScaffoldMessenger.of(modalContext).showSnackBar(
+                SnackBar(
+                  content: Text('No hay token. Inicia sesión nuevamente.'),
+                ),
+              );
             }
-          } else {
-            ScaffoldMessenger.of(modalContext).showSnackBar(
-              SnackBar(
-                content: Text('No hay token. Inicia sesión nuevamente.'),
-              ),
-            );
-          }
-        },
+          },
+        ),
       ),
     );
     if (result == true) {

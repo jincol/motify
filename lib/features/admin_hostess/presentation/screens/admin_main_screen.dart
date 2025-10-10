@@ -141,46 +141,103 @@ class _AdminHostessMainScreenState
                 final result = await showModalBottomSheet<bool>(
                   context: context,
                   isScrollControlled: true,
-                  builder: (modalContext) => RiderForm(
-                    title: 'Agregar Anfitriona',
-                    onSubmit: (data) async {
-                      final authState = ref.read(authNotifierProvider);
-                      if (authState.token != null &&
-                          authState.role == 'ADMIN_ANFITRIONA') {
-                        String? fotoUrl = data['foto'];
-                        final userService = UserService();
-                        final response = await userService.createUser(
-                          nombre: data['nombre'],
-                          apellido: data['apellido'],
-                          usuario: data['usuario'],
-                          email: data['email'],
-                          contrasena: data['contrasena'],
-                          role: 'ANFITRIONA',
-                          telefono: data['telefono'],
-                          fotoUrl: fotoUrl,
-                          token: authState.token!,
-                        );
-                        if (response.statusCode == 201) {
-                          await ref
-                              .read(adminHostessUsersProvider.notifier)
-                              .refresh();
-                          ref.refresh(groupAttendanceTodayProvider);
-                          Navigator.of(modalContext).pop(true);
+                  builder: (modalContext) => Scaffold(
+                    backgroundColor: Colors.transparent,
+                    body: RiderForm(
+                      title: 'Agregar Anfitriona',
+                      onSubmit: (data) async {
+                        final authState = ref.read(authNotifierProvider);
+                        if (authState.token != null &&
+                            authState.role == 'ADMIN_ANFITRIONA') {
+                          String? fotoUrl = data['foto'];
+                          final userService = UserService();
+                          final response = await userService.createUser(
+                            nombre: data['nombre'],
+                            apellido: data['apellido'],
+                            usuario: data['usuario'],
+                            email: data['email'],
+                            contrasena: data['contrasena'],
+                            role: 'ANFITRIONA',
+                            telefono: data['telefono'],
+                            fotoUrl: fotoUrl,
+                            token: authState.token!,
+                          );
+                          String errorMsg;
+                          try {
+                            final decoded = jsonDecode(response.body);
+                            if (decoded is Map &&
+                                decoded.containsKey('detail')) {
+                              final detail = decoded['detail'];
+                              if (detail is List && detail.isNotEmpty) {
+                                // Pydantic: muestra solo el primer mensaje
+                                errorMsg =
+                                    detail[0]['msg'] ?? 'Error de validación';
+                              } else if (detail is String) {
+                                errorMsg = detail;
+                              } else {
+                                errorMsg = 'Ocurrió un error inesperado';
+                              }
+                            } else {
+                              errorMsg = 'Ocurrió un error inesperado';
+                            }
+                          } catch (_) {
+                            errorMsg = 'Ocurrió un error inesperado';
+                          }
+                          if (response.statusCode == 201) {
+                            await ref
+                                .read(adminHostessUsersProvider.notifier)
+                                .refresh();
+                            ref.refresh(groupAttendanceTodayProvider);
+                            Navigator.of(modalContext).pop(true);
+                          } else {
+                            ScaffoldMessenger.of(modalContext).showSnackBar(
+                              SnackBar(
+                                content: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.error_outline,
+                                      color: Colors.white,
+                                      size: 24,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        errorMsg,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                        maxLines: 3,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                backgroundColor: Colors.red[700],
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                margin: EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 16,
+                                ),
+                                duration: Duration(seconds: 2),
+                                elevation: 10,
+                              ),
+                            );
+                          }
                         } else {
                           ScaffoldMessenger.of(modalContext).showSnackBar(
-                            SnackBar(content: Text('Error al crear usuario')),
+                            SnackBar(
+                              content: Text(
+                                'No hay token. Inicia sesión nuevamente.',
+                              ),
+                            ),
                           );
                         }
-                      } else {
-                        ScaffoldMessenger.of(modalContext).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'No hay token. Inicia sesión nuevamente.',
-                            ),
-                          ),
-                        );
-                      }
-                    },
+                      },
+                    ),
                   ),
                 );
                 if (result == true) {

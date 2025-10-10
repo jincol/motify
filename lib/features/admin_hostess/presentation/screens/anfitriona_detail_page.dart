@@ -163,7 +163,6 @@ class AnfitrionaDetailPage extends StatelessWidget {
         .join(' ');
   }
 
-  // Widget para la actividad reciente
   Widget _buildRecentActivitySection() {
     return Card(
       elevation: 2,
