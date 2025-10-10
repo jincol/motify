@@ -72,11 +72,14 @@ async def update_user(
     'user_in' es un esquema Pydantic con los campos a actualizar.
     """
     update_data = user_in.dict(exclude_unset=True)
+    print("DEBUG user_in:", user_in)
+    print("DEBUG update_data:", update_data)
     if "password" in update_data and update_data["password"]:
         hashed_password = get_password_hash(update_data["password"])
         del update_data["password"]
         update_data["password_hash"] = hashed_password
     for field, value in update_data.items():
+        print(f"Set {field} = {value}")
         setattr(user_db_obj, field, value)
     db.add(user_db_obj)
     await db.commit()

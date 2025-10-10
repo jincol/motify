@@ -147,13 +147,7 @@ class _AdminHostessMainScreenState
                       final authState = ref.read(authNotifierProvider);
                       if (authState.token != null &&
                           authState.role == 'ADMIN_ANFITRIONA') {
-                        String? fotoUrl;
-                        if (data['foto'] != null) {
-                          fotoUrl = await PhotoService.uploadPhoto(
-                            data['foto'],
-                            tipo: 'profile',
-                          );
-                        }
+                        String? fotoUrl = data['foto'];
                         final userService = UserService();
                         final response = await userService.createUser(
                           nombre: data['nombre'],
@@ -163,7 +157,6 @@ class _AdminHostessMainScreenState
                           contrasena: data['contrasena'],
                           role: 'ANFITRIONA',
                           telefono: data['telefono'],
-                          // placaUnidad: null, // No enviar para anfitriona
                           fotoUrl: fotoUrl,
                           token: authState.token!,
                         );

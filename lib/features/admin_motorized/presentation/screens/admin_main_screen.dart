@@ -96,13 +96,7 @@ class _AdminMotorizadoMainScreenState
         onSubmit: (data) async {
           final authState = ref.read(authNotifierProvider);
           if (authState.role == 'ADMIN_MOTORIZADO') {
-            String? fotoUrl;
-            if (data['foto'] != null) {
-              fotoUrl = await PhotoService.uploadPhoto(
-                data['foto'],
-                tipo: 'profile',
-              );
-            }
+            String? fotoUrl = data['foto'];
             final userService = UserService();
             final response = await userService.createUser(
               nombre: data['nombre'],

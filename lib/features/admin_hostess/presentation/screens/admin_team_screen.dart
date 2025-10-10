@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:motify/core/services/user_service.dart';
+import 'package:motify/core/widgets/rider_form.dart';
 import 'package:motify/core/widgets/team_list_view.dart';
 // import 'package:motify/features/admin_hostess/application/users_providers.dart';
 import 'package:motify/core/providers/admin_users_notifier.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:motify/features/auth/application/auth_notifier.dart';
 import 'package:motify/features/shared/application/group_attendance_provider.dart';
 import '../widgets/hostess_card.dart';
 import 'anfitriona_detail_page.dart';
@@ -100,7 +103,86 @@ class _AdminTeamScreenState extends ConsumerState<AdminTeamScreen> {
             },
             child: HostessCard(
               user: user,
-              onEdit: () {},
+              onEdit: () async {
+                await showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (modalContext) => RiderForm(
+                    title: 'Editar Anfitriona',
+                    initialNombre: user.name,
+                    initialApellido: user.lastName,
+                    initialEmail: user.email,
+                    initialUsuario: user.username,
+                    initialTelefono: user.phone,
+                    initialAvatarUrl: user.avatarUrl,
+                    showPlaca: false,
+                    isEditMode: true,
+                    onSubmit: (data) async {
+                      final token = ref
+                          .read(adminHostessUsersProvider.notifier)
+                          .ref
+                          .read(authNotifierProvider)
+                          .token;
+                      final userId = user.id.toString();
+
+                      if (token == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('No se encontró el token de sesión'),
+                          ),
+                        );
+                        return;
+                      }
+
+                      final fieldsToUpdate = {
+                        'name': data['nombre'],
+                        'lastname': data['apellido'],
+                        'email': data['email'],
+                        'username': data['usuario'],
+                        'phone': data['telefono'],
+                        'avatar_url': data['foto'],
+                      };
+
+                      fieldsToUpdate['full_name'] =
+                          '${data['nombre']} ${data['apellido']}';
+                      fieldsToUpdate.removeWhere(
+                        (key, value) => value == null || value == '',
+                      );
+
+                      if (data['contrasena'] != null &&
+                          data['contrasena'].toString().isNotEmpty) {
+                        fieldsToUpdate['password'] = data['contrasena'];
+                      }
+
+                      final response = await UserService().updateUser(
+                        userId: userId,
+                        fieldsToUpdate: fieldsToUpdate,
+                        token: token,
+                      );
+
+                      if (response.statusCode == 200) {
+                        if (context.mounted) {
+                          Navigator.of(modalContext).pop();
+                          ref.refresh(adminHostessUsersProvider);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Usuario actualizado correctamente',
+                              ),
+                            ),
+                          );
+                        }
+                      } else {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: ${response.body}')),
+                          );
+                        }
+                      }
+                    },
+                  ),
+                );
+              },
               onDelete: () {},
               onView: () {},
             ),

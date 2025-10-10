@@ -2,12 +2,37 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_flutter/lucide_flutter.dart';
+import 'package:motify/core/services/photo_service.dart';
 
 class RiderForm extends StatefulWidget {
+  final String? initialNombre;
+  final String? initialApellido;
+  final String? initialEmail;
+  final String? initialUsuario;
+  final String? initialTelefono;
+  final String? initialPlaca;
+  final String? initialAvatarUrl;
+  final String? initialPassword;
+  final bool showPlaca;
   final String title;
+  final bool isEditMode;
   final void Function(Map<String, dynamic> data)? onSubmit;
 
-  const RiderForm({super.key, required this.title, this.onSubmit});
+  const RiderForm({
+    super.key,
+    required this.title,
+    this.onSubmit,
+    this.initialNombre,
+    this.initialApellido,
+    this.initialEmail,
+    this.initialUsuario,
+    this.initialTelefono,
+    this.initialPlaca,
+    this.initialAvatarUrl,
+    this.initialPassword,
+    this.showPlaca = true,
+    this.isEditMode = false,
+  });
 
   @override
   State<RiderForm> createState() => _RiderFormState();
@@ -25,6 +50,7 @@ class _RiderFormState extends State<RiderForm> {
   final _passwordController = TextEditingController();
   final _phoneController = TextEditingController();
   final _placaController = TextEditingController();
+
   Future<void> _pickImage() async {
     final XFile? pickedFile = await _picker.pickImage(
       source: ImageSource.gallery,
@@ -36,7 +62,7 @@ class _RiderFormState extends State<RiderForm> {
     }
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       final data = {
         'nombre': _nameController.text,
@@ -49,6 +75,23 @@ class _RiderFormState extends State<RiderForm> {
         'foto': _profileImage,
       };
 
+      // Si hay nueva foto, súbela y pon la URL en 'foto' (para createUser)
+      if (_profileImage != null) {
+        try {
+          final url = await PhotoService.uploadPhoto(
+            _profileImage!,
+            tipo: 'profile',
+          );
+          data['foto'] = url;
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error al subir la foto: $e')),
+            );
+          }
+          return;
+        }
+      }
       widget.onSubmit?.call(data);
     }
   }
@@ -62,6 +105,18 @@ class _RiderFormState extends State<RiderForm> {
     _passwordController.dispose();
     _phoneController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController.text = widget.initialNombre ?? '';
+    _lastNameController.text = widget.initialApellido ?? '';
+    _emailController.text = widget.initialEmail ?? '';
+    _userController.text = widget.initialUsuario ?? '';
+    _phoneController.text = widget.initialTelefono ?? '';
+    _placaController.text = widget.initialPlaca ?? '';
+    _passwordController.text = widget.initialPassword ?? '';
   }
 
   @override
@@ -113,7 +168,9 @@ class _RiderFormState extends State<RiderForm> {
                     backgroundColor: lightGrayColor,
                     backgroundImage: _profileImage != null
                         ? FileImage(_profileImage!)
-                        : null,
+                        : (widget.initialAvatarUrl != null
+                              ? NetworkImage(widget.initialAvatarUrl!)
+                              : null),
                     child: _profileImage == null
                         ? const Icon(
                             LucideIcons.user,
@@ -157,6 +214,12 @@ class _RiderFormState extends State<RiderForm> {
                   });
                 },
               ),
+              validator: (value) {
+                if (!(widget.isEditMode) && (value == null || value.isEmpty)) {
+                  return 'La contraseña es obligatoria';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             _buildTextField(
@@ -166,12 +229,13 @@ class _RiderFormState extends State<RiderForm> {
               keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 16),
-            _buildTextField(
-              controller: _placaController,
-              label: 'AB-123 (Opcional)',
-              isOptional: true,
-              keyboardType: TextInputType.text,
-            ),
+            if (widget.showPlaca)
+              _buildTextField(
+                controller: _placaController,
+                label: 'AB-123 (Opcional)',
+                isOptional: true,
+                keyboardType: TextInputType.text,
+              ),
             const SizedBox(height: 24),
             // Botones
             Row(
@@ -217,6 +281,7 @@ class _RiderFormState extends State<RiderForm> {
     bool isOptional = false,
     TextInputType keyboardType = TextInputType.text,
     Widget? suffixIcon,
+    String? Function(String?)? validator, // <-- AGREGA ESTA LÍNEA
   }) {
     return TextFormField(
       controller: controller,
@@ -227,12 +292,14 @@ class _RiderFormState extends State<RiderForm> {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         suffixIcon: suffixIcon,
       ),
-      validator: (value) {
-        if (!isOptional && (value == null || value.isEmpty)) {
-          return 'Este campo es obligatorio';
-        }
-        return null;
-      },
+      validator:
+          validator ??
+          (value) {
+            if (!isOptional && (value == null || value.isEmpty)) {
+              return 'Este campo es obligatorio';
+            }
+            return null;
+          },
     );
   }
 }

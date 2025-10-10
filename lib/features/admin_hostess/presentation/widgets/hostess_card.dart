@@ -18,7 +18,7 @@ class HostessCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusInfo = _getStatusInfo(user.workState);
-    final String displayName = user.name;
+    final String displayName = user.name ?? '';
     final String initials = displayName.isNotEmpty
         ? displayName
               .trim()

@@ -42,12 +42,15 @@ class UserUpdate(BaseModel):
     lastname: Optional[str] = None
     email: Optional[EmailStr] = None
     full_name: Optional[str] = None
+    username: Optional[str] = None
+    phone: Optional[str] = None
+    placa_unidad: Optional[str] = None
     password: Optional[str] = Field(None, min_length=6, description="Nueva contraseña (opcional, mínimo 6 caracteres)")
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None
     is_superuser: Optional[bool] = None
     grupo_id: Optional[int] = None
-    avatar_url: Optional[str] = None  
+    avatar_url: Optional[str] = None
 
 class UserRead(UserBase):
     id: int

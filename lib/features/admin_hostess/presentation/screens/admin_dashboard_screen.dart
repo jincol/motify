@@ -100,8 +100,9 @@ class AdminAnfitrionaDashboardScreen extends ConsumerWidget {
                                     } catch (_) {
                                       user = null;
                                     }
-                                    final nombre = user?.name != null
-                                        ? user!.name
+                                    final nombre =
+                                        (user?.name ?? '').trim().isNotEmpty
+                                        ? (user!.name ?? '')
                                               .split(' ')
                                               .map(capitalize)
                                               .join(' ')
@@ -179,8 +180,11 @@ class AdminAnfitrionaDashboardScreen extends ConsumerWidget {
                     } catch (_) {
                       user = null;
                     }
-                    final nombre = user?.name != null
-                        ? user!.name.split(' ').map(capitalize).join(' ')
+                    final nombre = (user?.name ?? '').trim().isNotEmpty
+                        ? (user!.name ?? '')
+                              .split(' ')
+                              .map(capitalize)
+                              .join(' ')
                         : 'Desconocido';
                     final initials = nombre.isNotEmpty
                         ? nombre.substring(0, 2).toUpperCase()

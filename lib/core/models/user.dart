@@ -8,6 +8,8 @@ class User {
   final int? grupoId;
   final String? avatarUrl;
   final String? fullName;
+  final String? name;
+  final String? lastName;
   final bool? isActive;
   final bool? isSuperuser;
   final String? email;
@@ -22,6 +24,8 @@ class User {
     this.grupoId,
     this.avatarUrl,
     this.fullName,
+    this.name,
+    this.lastName,
     this.isActive,
     this.isSuperuser,
     this.email,
@@ -29,10 +33,9 @@ class User {
     this.placaUnidad,
   });
 
-  String get name {
-    if (fullName != null && fullName!.isNotEmpty) {
-      return fullName!;
-    }
+  String get displayName {
+    if (name != null && name!.isNotEmpty) return name!;
+    if (fullName != null && fullName!.isNotEmpty) return fullName!;
     return username;
   }
 
@@ -44,6 +47,8 @@ class User {
     int? grupoId,
     String? avatarUrl,
     String? fullName,
+    String? name,
+    String? lastName,
     bool? isActive,
     bool? isSuperuser,
     String? email,
@@ -58,6 +63,8 @@ class User {
       grupoId: grupoId ?? this.grupoId,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       fullName: fullName ?? this.fullName,
+      name: name ?? this.name,
+      lastName: lastName ?? this.lastName,
       isActive: isActive ?? this.isActive,
       isSuperuser: isSuperuser ?? this.isSuperuser,
       email: email ?? this.email,
@@ -75,6 +82,8 @@ class User {
       grupoId: json['grupo_id'],
       avatarUrl: json['avatar_url'],
       fullName: json['full_name'],
+      name: json['name'],
+      lastName: json['lastname'],
       isActive: json['is_active'],
       isSuperuser: json['is_superuser'],
       email: json['email'],

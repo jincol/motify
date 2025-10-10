@@ -60,6 +60,22 @@ class UserService {
     }
   }
 
+  Future<http.Response> updateUser({
+    required String userId,
+    required Map<String, dynamic> fieldsToUpdate,
+    required String token,
+  }) async {
+    final response = await http.put(
+      Uri.parse('$_baseUrl$userId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(fieldsToUpdate),
+    );
+    return response;
+  }
+
   Future<http.Response> updateAvatarUrl({
     required String userId,
     required String avatarUrl,

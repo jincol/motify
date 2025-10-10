@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:motify/core/providers/admin_users_notifier.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:motify/core/services/user_service.dart';
+import 'package:motify/core/widgets/rider_form.dart';
 import 'package:motify/core/widgets/team_list_view.dart';
 import 'package:motify/core/models/user.dart';
 import 'package:motify/core/widgets/confirmation_dialog.dart';
+import 'package:motify/features/auth/application/auth_notifier.dart';
 import '../widgets/rider_card.dart';
 
 typedef OnUserDeleted = void Function();
@@ -142,7 +145,92 @@ class _AdminTeamScreenState extends ConsumerState<AdminTeamScreen> {
                 ),
                 child: RiderCard(
                   user: user,
-                  onEdit: () {},
+                  onEdit: () async {
+                    await showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (modalContext) => RiderForm(
+                        title: 'Editar Motorizado',
+                        initialNombre: user.name,
+                        initialApellido: user.lastName,
+                        initialEmail: user.email,
+                        initialUsuario: user.username,
+                        initialTelefono: user.phone,
+                        initialPlaca: user.placaUnidad,
+                        initialAvatarUrl: user.avatarUrl,
+                        showPlaca: true,
+                        isEditMode: true,
+                        onSubmit: (data) async {
+                          final token = ref.read(authNotifierProvider).token;
+                          final userId = user.id.toString();
+
+                          if (token == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'No se encontró el token de sesión',
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
+                          final fieldsToUpdate = {
+                            'name': data['nombre'],
+                            'lastname': data['apellido'],
+                            'email': data['email'],
+                            'username': data['usuario'],
+
+                            'phone': data['telefono'],
+                            'placa_unidad': data['placa_unidad'],
+                            'avatar_url': data['foto'],
+                          };
+
+                          fieldsToUpdate['full_name'] =
+                              '${data['nombre']} ${data['apellido']}';
+
+                          fieldsToUpdate.removeWhere(
+                            (key, value) => value == null || value == '',
+                          );
+
+                          if (data['contrasena'] != null &&
+                              data['contrasena'].toString().isNotEmpty) {
+                            fieldsToUpdate['password'] = data['contrasena'];
+                          }
+
+                          print('DEBUG fieldsToUpdate:');
+                          fieldsToUpdate.forEach((k, v) => print('$k: $v'));
+                          final response = await UserService().updateUser(
+                            userId: userId,
+                            fieldsToUpdate: fieldsToUpdate,
+                            token: token,
+                          );
+
+                          if (response.statusCode == 200) {
+                            if (context.mounted) {
+                              Navigator.of(modalContext).pop();
+                              ref.refresh(adminMotorizedUsersProvider);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Usuario actualizado correctamente',
+                                  ),
+                                ),
+                              );
+                            }
+                          } else {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error: ${response.body}'),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    );
+                  },
                   onDelete: () {},
                   onView: () {},
                 ),

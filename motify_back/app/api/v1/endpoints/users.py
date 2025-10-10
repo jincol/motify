@@ -8,6 +8,7 @@ from app.schemas.user import UserRead
 from app.schemas import user as user_schema 
 from app.db.models.user import User
 from app.api import deps 
+from sqlalchemy.future import select
 
 router = APIRouter()
 
@@ -76,7 +77,6 @@ async def list_users(
     """
     Lista usuarios filtrados por rol y grupo, según permisos del usuario autenticado.
     """
-    from sqlalchemy.future import select
     stmt = select(User)
     if current_user.role == user_schema.UserRole.SUPER_ADMIN:
         if role:
@@ -111,21 +111,22 @@ async def delete_user(
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return user
 
-# @router.get("/{user_id}", response_model=user_schema.UserRead)
-# async def read_user_by_id(
-#     user_id: int,
-#     db: Session = Depends(deps.get_db),
-#     # current_user: models.User = Depends(deps.get_current_active_user) # Para protegerlo
-# ) -> Any:
-#     """
-#     Obtiene un usuario por su ID.
-#     """
-#     user = crud.user.get_user_by_id(db, user_id=user_id)
-#     if not user:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail="User not found",
-#         )
-#     # Aquí podrías añadir lógica de permisos si el usuario actual solo puede ver ciertos usuarios
-#     return user
-
+@router.put("/{user_id}", response_model=user_schema.UserRead)
+async def update_user_endpoint(
+    *,
+    db: AsyncSession = Depends(deps.get_async_db),
+    user_id: int,
+    user_in: user_schema.UserUpdate,
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """
+    Actualiza un usuario existente.
+    """
+    db_user = await crud.user.get_user_by_id(db, user_id=user_id)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    if current_user.role != "SUPER_ADMIN":
+        if db_user.grupo_id != current_user.id:
+            raise HTTPException(status_code=403, detail="No tienes permiso para editar este usuario")
+    user = await crud.user.update_user(db, db_user, user_in)
+    return user
