@@ -18,84 +18,96 @@ class RiderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusInfo = _getStatusInfo(user.workState);
-    return Card(
-      margin: EdgeInsets.zero,
-      elevation: 2,
-      shadowColor: Colors.black12,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(40),
-          bottomLeft: Radius.circular(40),
-          topRight: Radius.circular(0),
-          bottomRight: Radius.circular(0),
-        ),
+    return InkWell(
+      onTap: onView,
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(40),
+        bottomLeft: Radius.circular(40),
+        topRight: Radius.circular(0),
+        bottomRight: Radius.circular(0),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: Colors.grey.shade200,
-              backgroundImage:
-                  (user.avatarUrl != null && user.avatarUrl!.isNotEmpty)
-                  ? NetworkImage(user.avatarUrl!)
-                  : null,
-              child: (user.avatarUrl == null || user.avatarUrl!.isEmpty)
-                  ? Text(
-                      user.username.isNotEmpty
-                          ? user.username[0].toUpperCase()
-                          : '?',
-                      style: const TextStyle(fontSize: 20, color: Colors.black),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _capitalize(user.username),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: statusInfo['color'],
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        statusInfo['text'],
+      child: Card(
+        margin: EdgeInsets.zero,
+        elevation: 2,
+        shadowColor: Colors.black12,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(40),
+            bottomLeft: Radius.circular(40),
+            topRight: Radius.circular(0),
+            bottomRight: Radius.circular(0),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: Colors.grey.shade200,
+                backgroundImage:
+                    (user.avatarUrl != null && user.avatarUrl!.isNotEmpty)
+                    ? NetworkImage(user.avatarUrl!)
+                    : null,
+                child: (user.avatarUrl == null || user.avatarUrl!.isEmpty)
+                    ? Text(
+                        user.username.isNotEmpty
+                            ? user.username[0].toUpperCase()
+                            : '?',
                         style: const TextStyle(
-                          fontSize: 14,
-                          color: Color.fromARGB(137, 0, 0, 0),
+                          fontSize: 20,
+                          color: Colors.black,
                         ),
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _capitalize(user.username),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
-                    ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: statusInfo['color'],
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          statusInfo['text'],
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color.fromARGB(137, 0, 0, 0),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.grey, size: 20),
+                    onPressed: onEdit,
                   ),
                 ],
               ),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.grey, size: 20),
-                  onPressed: onEdit,
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

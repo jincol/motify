@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:motify/core/providers/admin_users_notifier.dart';
@@ -11,6 +10,7 @@ import 'package:motify/core/models/user.dart';
 import 'package:motify/core/widgets/confirmation_dialog.dart';
 import 'package:motify/features/auth/application/auth_notifier.dart';
 import '../widgets/rider_card.dart';
+import 'motorized_detail_page.dart';
 
 typedef OnUserDeleted = void Function();
 
@@ -288,7 +288,14 @@ class _AdminTeamScreenState extends ConsumerState<AdminTeamScreen> {
                     );
                   },
                   onDelete: () {},
-                  onView: () {},
+                  onView: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MotorizadoDetailPage(user: user),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
