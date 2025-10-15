@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:motify/core/models/user.dart';
+import 'package:motify/core/widgets/user_attendance_history_screen.dart';
 import 'package:motify/core/widgets/user_detail_app_bar.dart';
-import 'package:motify/core/models/user.dart';
+import 'package:motify/features/shared/application/attendance_history_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AnfitrionaDetailPage extends StatelessWidget {
+class AnfitrionaDetailPage extends ConsumerWidget {
   final User user;
   const AnfitrionaDetailPage({Key? key, required this.user}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final attendanceAsync = ref.watch(attendanceHistoryProvider(user.id));
     return Scaffold(
       appBar: const UserDetailAppBar(title: 'Detalle de Anfitriona'),
       body: SafeArea(
@@ -23,9 +26,22 @@ class AnfitrionaDetailPage extends StatelessWidget {
                 const SizedBox(height: 20),
                 _buildInfoSection(),
                 const SizedBox(height: 20),
-                _buildRecentActivitySection(),
+                attendanceAsync.when(
+                  data: (attendances) {
+                    final userAttendances =
+                        attendances.where((a) => a.userId == user.id).toList()
+                          ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+                    final recentTwo = userAttendances.take(2).toList();
+                    return _buildRecentActivitySection(recentTwo);
+                  },
+
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (e, _) =>
+                      Center(child: Text('Error cargando asistencias')),
+                ),
                 const SizedBox(height: 20),
-                _buildActionButtons(context),
+                _buildActionButtons(context, ref),
                 const SizedBox(height: 20),
               ],
             ),
@@ -163,7 +179,7 @@ class AnfitrionaDetailPage extends StatelessWidget {
         .join(' ');
   }
 
-  Widget _buildRecentActivitySection() {
+  Widget _buildRecentActivitySection(List<Attendance> attendances) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -190,21 +206,32 @@ class AnfitrionaDetailPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            _buildActivityItem(
-              imageUrl: 'https://placehold.co/80x80/f97316/ffffff?text=Foto',
-              title: 'Salida',
-              subtitle: '30/09/2025, 06:15 PM',
-              location: 'Punto de Trabajo A, Miraflores',
-              isEntry: false,
-            ),
-            const SizedBox(height: 16),
-            _buildActivityItem(
-              imageUrl: 'https://placehold.co/80x80/f97316/ffffff?text=Foto',
-              title: 'Entrada',
-              subtitle: '30/09/2025, 09:00 AM',
-              location: 'Punto de Trabajo A, Miraflores',
-              isEntry: true,
-            ),
+            if (attendances.isEmpty)
+              const Text('Sin registros de asistencia recientes.'),
+            ...attendances.map((a) {
+              final localTime = a.timestamp.toLocal();
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: _buildActivityItem(
+                  imageUrl: a.photoUrl.isNotEmpty
+                      ? a.photoUrl
+                      : 'https://placehold.co/80x80/f97316/ffffff?text=Foto',
+                  title: a.type == 'check-in'
+                      ? 'Entrada'
+                      : a.type == 'check-out'
+                      ? 'Salida'
+                      : a.type,
+                  subtitle:
+                      '${localTime.day.toString().padLeft(2, '0')}/'
+                      '${localTime.month.toString().padLeft(2, '0')}/'
+                      '${localTime.year}, '
+                      '${localTime.hour.toString().padLeft(2, '0')}:'
+                      '${localTime.minute.toString().padLeft(2, '0')}',
+                  location: 'Punto de Trabajo A, Miraflores',
+                  isEntry: a.type == 'check-in',
+                ),
+              );
+            }),
           ],
         ),
       ),
@@ -312,7 +339,7 @@ class AnfitrionaDetailPage extends StatelessWidget {
   }
 
   // Widget para los botones de acción mejorados
-  Widget _buildActionButtons(BuildContext context) {
+  Widget _buildActionButtons(BuildContext context, WidgetRef ref) {
     return Row(
       children: [
         Expanded(
@@ -326,9 +353,14 @@ class AnfitrionaDetailPage extends StatelessWidget {
               ),
             ),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Navegando a historial de asistencias...'),
+              ref.invalidate(attendanceHistoryProvider(user.id));
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => UserAttendanceHistoryScreen(
+                    userId: user.id,
+                    userName: user.fullName ?? 'Usuario',
+                  ),
                 ),
               );
             },

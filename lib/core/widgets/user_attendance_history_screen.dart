@@ -1,28 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:motify/core/widgets/panel_app_bar.dart';
-import 'package:motify/core/widgets/main_drawer.dart';
 import 'package:motify/core/widgets/attendance_history_list.dart';
-import 'package:motify/features/auth/application/auth_notifier.dart';
 import 'package:motify/features/shared/application/attendance_history_provider.dart';
 
-class AttendanceHistoryScreen extends ConsumerWidget {
-  const AttendanceHistoryScreen({Key? key}) : super(key: key);
+class UserAttendanceHistoryScreen extends ConsumerWidget {
+  final int userId;
+  final String userName;
+
+  const UserAttendanceHistoryScreen({
+    Key? key,
+    required this.userId,
+    required this.userName,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userId = ref.watch(authNotifierProvider).userId;
-    print('userId en historial: $userId');
-    if (userId == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
     final attendanceAsync = ref.watch(attendanceHistoryProvider(userId));
+
     return Scaffold(
-      appBar: const PanelAppBar(
-        title: 'Historial de Asistencia',
-        showBackArrow: true,
-      ),
-      drawer: const MainDrawer(),
+      appBar: PanelAppBar(title: 'Historial de $userName', showBackArrow: true),
       body: Column(
         children: [
           Padding(
@@ -40,7 +37,7 @@ class AttendanceHistoryScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Text(
-                      'Esta Semana: 29 Sep - 03 Oct',
+                      'Historial de Asistencias',
                       style: TextStyle(
                         color: Colors.black87,
                         fontWeight: FontWeight.w500,
@@ -48,29 +45,9 @@ class AttendanceHistoryScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: () {
-                    // Aquí puedes abrir un selector de fechas o filtro
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFF97316),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'Filtrar',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
-          // Lista de asistencias
           Expanded(
             child: attendanceAsync.when(
               data: (attendances) => AttendanceHistoryList(

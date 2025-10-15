@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:motify/core/models/user.dart';
 import 'package:motify/core/providers/admin_users_notifier.dart';
-import 'package:motify/features/admin_hostess/application/users_providers.dart';
 import '../widgets/kpi_card.dart';
 import '../widgets/employee_attendance_card.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -36,22 +36,27 @@ class Attendance {
   );
 }
 
-final attendanceHistoryProvider = FutureProvider.autoDispose<List<Attendance>>((
-  ref,
-) async {
-  final token = ref.read(authNotifierProvider).token;
-  if (token == null) throw Exception('No token found');
-  final response = await http.get(
-    Uri.parse('http://192.168.31.166:8000/api/v1/attendance/'),
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    },
-  );
-  if (response.statusCode == 200) {
-    final List<dynamic> data = jsonDecode(response.body);
-    return data.map((e) => Attendance.fromJson(e)).toList();
-  } else {
-    throw Exception('Error loading attendance history');
-  }
-});
+final attendanceHistoryProvider = FutureProvider.family
+    .autoDispose<List<Attendance>, int>((ref, userId) async {
+      print('Cargando historial para userId: $userId');
+      final token = ref.read(authNotifierProvider).token;
+      print('Token: $token');
+      if (token == null) throw Exception('No token found');
+      final response = await http.get(
+        Uri.parse(
+          'http://192.168.31.166:8000/api/v1/attendance/?user_id=$userId',
+        ),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        print('Response status: ${response.statusCode}');
+        final List<dynamic> data = jsonDecode(response.body);
+        print('Asistencias cargadas: ${data.length}');
+        return data.map((e) => Attendance.fromJson(e)).toList();
+      } else {
+        throw Exception('Error loading attendance history');
+      }
+    });

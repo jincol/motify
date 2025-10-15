@@ -5,5 +5,12 @@ class AuthState {
   final String? role;
   final String? workState;
   final String? token;
-  AuthState({required this.authStatus, this.role, this.workState, this.token});
+  final int? userId;
+  AuthState({
+    required this.authStatus,
+    this.role,
+    this.workState,
+    this.token,
+    this.userId,
+  });
 }

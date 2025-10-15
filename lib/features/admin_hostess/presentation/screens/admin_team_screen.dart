@@ -9,6 +9,7 @@ import 'package:motify/core/widgets/team_list_view.dart';
 import 'package:motify/core/providers/admin_users_notifier.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:motify/features/auth/application/auth_notifier.dart';
+import 'package:motify/features/shared/application/attendance_history_provider.dart';
 import 'package:motify/features/shared/application/group_attendance_provider.dart';
 import '../widgets/hostess_card.dart';
 import 'anfitriona_detail_page.dart';
@@ -96,6 +97,10 @@ class _AdminTeamScreenState extends ConsumerState<AdminTeamScreen> {
           ),
           child: GestureDetector(
             onTap: () {
+              final userId = ref.read(authNotifierProvider).userId;
+              if (userId != null) {
+                ref.invalidate(attendanceHistoryProvider(userId));
+              }
               Navigator.push(
                 context,
                 MaterialPageRoute(

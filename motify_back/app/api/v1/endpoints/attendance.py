@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends
 from sqlalchemy import select, and_
 from app.db import models
+from fastapi import Query
 from app.api import deps
 from typing import List
 import json
@@ -49,9 +50,13 @@ async def check_in_attendance(
 @router.get("/", response_model=List[AttendanceRead])
 async def get_user_attendances(
     db: AsyncSession = Depends(deps.get_async_db),
-    current_user = Depends(deps.get_current_user)
+    current_user = Depends(deps.get_current_user),
+    user_id: int = Query(None)
 ):
-    attendances = await get_attendances_by_user(db, user_id=current_user.id)
+    if user_id is not None and current_user.role in ["ADMIN_MOTORIZADO", "ADMIN_ANFITRIONA", "SUPER_ADMIN"]:
+        attendances = await get_attendances_by_user(db, user_id=user_id)
+    else:
+        attendances = await get_attendances_by_user(db, user_id=current_user.id)
     return [
         AttendanceRead.model_validate({
             **a.__dict__,

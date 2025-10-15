@@ -3,8 +3,8 @@ import 'package:motify/features/admin_motorized/application/users_provider.dart'
 import 'package:motify/features/auth/application/auth_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/services/photo_service.dart';
-import '../../../../core/services/user_service.dart';
-import '../../../../core/widgets/main_drawer.dart';
+import 'package:motify/core/services/user_service.dart';
+import 'package:motify/core/widgets/main_drawer.dart';
 import '../../../../core/widgets/panel_app_bar.dart';
 import '../../../../core/widgets/rider_form.dart';
 import 'package:flutter/material.dart';
@@ -151,7 +151,7 @@ class _AdminMotorizadoMainScreenState
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
-                              fontSize: 13, // Letra un poco más pequeña
+                              fontSize: 13,
                             ),
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,

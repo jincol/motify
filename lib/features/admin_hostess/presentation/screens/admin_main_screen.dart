@@ -169,7 +169,6 @@ class _AdminHostessMainScreenState
                                 decoded.containsKey('detail')) {
                               final detail = decoded['detail'];
                               if (detail is List && detail.isNotEmpty) {
-                                // Pydantic: muestra solo el primer mensaje
                                 errorMsg =
                                     detail[0]['msg'] ?? 'Error de validación';
                               } else if (detail is String) {
@@ -286,7 +285,6 @@ class _AdminHostessMainScreenState
             _selectedIndex = index;
           });
           if (index == 0) {
-            // 0 es el tab del dashboard
             ref.read(adminHostessUsersProvider.notifier).refresh();
             ref.refresh(groupAttendanceTodayProvider);
           }
