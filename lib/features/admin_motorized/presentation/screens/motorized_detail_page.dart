@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:motify/core/models/user.dart';
 import 'package:motify/features/shared/application/attendance_history_provider.dart';
 import 'package:motify/core/widgets/user_attendance_history_screen.dart';
+import 'package:motify/features/admin_motorized/presentation/widgets/motorizado_map_widget.dart';
+import 'package:motify/core/services/geocoding_service.dart';
 
 class MotorizadoDetailPage extends ConsumerWidget {
   final User user;
@@ -45,7 +47,7 @@ class MotorizadoDetailPage extends ConsumerWidget {
                 const SizedBox(height: 20),
                 _buildInfoSection(),
                 const SizedBox(height: 20),
-                _buildLocationSection(),
+                _buildLocationSection(ref),
                 const SizedBox(height: 20),
                 attendanceAsync.when(
                   data: (attendances) {
@@ -270,7 +272,9 @@ class MotorizadoDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildLocationSection() {
+  Widget _buildLocationSection(WidgetRef ref) {
+    final attendanceAsync = ref.watch(attendanceHistoryProvider(user.id));
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -279,31 +283,160 @@ class MotorizadoDetailPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Ubicación Actual',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black54,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Ubicación Actual',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black54,
+                  ),
+                ),
+                attendanceAsync.when(
+                  data: (attendances) {
+                    if (attendances.isEmpty) return const SizedBox();
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.circle,
+                            size: 8,
+                            color: Colors.green.shade700,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Última asistencia',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.green.shade700,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  loading: () => const SizedBox(),
+                  error: (_, __) => const SizedBox(),
+                ),
+              ],
             ),
             const Divider(height: 24),
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.orange,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Center(
-                  child: Text(
-                    'Mapa en Vivo',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
+            attendanceAsync.when(
+              data: (attendances) {
+                if (attendances.isEmpty) {
+                  return AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: MotorizadoMapWidget(
+                      latitude: null,
+                      longitude: null,
+                      motorizadoName: user.displayName,
                     ),
-                  ),
+                  );
+                }
+
+                // Obtener última asistencia
+                final lastAttendance = attendances.first;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: MotorizadoMapWidget(
+                        latitude: lastAttendance.gpsLat,
+                        longitude: lastAttendance.gpsLng,
+                        motorizadoName: user.displayName,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    FutureBuilder<String?>(
+                      future: GeocodingService.getAddressFromCoordinates(
+                        latitude: lastAttendance.gpsLat,
+                        longitude: lastAttendance.gpsLng,
+                      ),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Row(
+                            children: [
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Text('Obteniendo dirección...'),
+                            ],
+                          );
+                        }
+
+                        if (snapshot.hasData && snapshot.data != null) {
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.location_on,
+                                size: 18,
+                                color: Colors.orange,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  snapshot.data!,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+
+                        return Row(
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              size: 18,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Lat: ${lastAttendance.gpsLat.toStringAsFixed(6)}, '
+                              'Lng: ${lastAttendance.gpsLng.toStringAsFixed(6)}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (_, __) => AspectRatio(
+                aspectRatio: 16 / 9,
+                child: MotorizadoMapWidget(
+                  latitude: null,
+                  longitude: null,
+                  motorizadoName: user.displayName,
                 ),
               ),
             ),
@@ -353,16 +486,35 @@ class MotorizadoDetailPage extends ConsumerWidget {
                     ? 'Entrada de Jornada'
                     : 'Salida de Jornada';
                 final subtitle = '$formattedDate, $formattedTime';
-                final location =
-                    'Lat: ${attendance.gpsLat?.toStringAsFixed(6) ?? 'N/A'}, Lng: ${attendance.gpsLng?.toStringAsFixed(6) ?? 'N/A'}';
+                // final location =
+                //     'Lat: ${attendance.gpsLat?.toStringAsFixed(6) ?? 'N/A'}, Lng: ${attendance.gpsLng?.toStringAsFixed(6) ?? 'N/A'}';
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16.0),
-                  child: _buildActivityItem(
-                    photoUrl: attendance.photoUrl,
-                    title: title,
-                    subtitle: subtitle,
-                    location: location,
+                  child: FutureBuilder<String?>(
+                    future: GeocodingService.getAddressFromCoordinates(
+                      latitude: attendance.gpsLat,
+                      longitude: attendance.gpsLng,
+                    ),
+                    builder: (context, snapshot) {
+                      String location;
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        location = 'Obteniendo dirección...';
+                      } else if (snapshot.hasData && snapshot.data != null) {
+                        location = snapshot.data!;
+                      } else {
+                        location =
+                            'Lat: ${attendance.gpsLat?.toStringAsFixed(6) ?? 'N/A'}, '
+                            'Lng: ${attendance.gpsLng?.toStringAsFixed(6) ?? 'N/A'}';
+                      }
+
+                      return _buildActivityItem(
+                        photoUrl: attendance.photoUrl,
+                        title: title,
+                        subtitle: subtitle,
+                        location: location,
+                      );
+                    },
                   ),
                 );
               }).toList(),

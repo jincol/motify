@@ -4,6 +4,8 @@ import 'package:motify/core/widgets/user_attendance_history_screen.dart';
 import 'package:motify/core/widgets/user_detail_app_bar.dart';
 import 'package:motify/features/shared/application/attendance_history_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:motify/core/services/geocoding_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AnfitrionaDetailPage extends ConsumerWidget {
   final User user;
@@ -227,7 +229,8 @@ class AnfitrionaDetailPage extends ConsumerWidget {
                       '${localTime.year}, '
                       '${localTime.hour.toString().padLeft(2, '0')}:'
                       '${localTime.minute.toString().padLeft(2, '0')}',
-                  location: 'Punto de Trabajo A, Miraflores',
+                  latitude: a.gpsLat,
+                  longitude: a.gpsLng,
                   isEntry: a.type == 'check-in',
                 ),
               );
@@ -243,7 +246,8 @@ class AnfitrionaDetailPage extends ConsumerWidget {
     required String imageUrl,
     required String title,
     required String subtitle,
-    required String location,
+    required double latitude,
+    required double longitude,
     required bool isEntry,
   }) {
     return Container(
@@ -311,24 +315,66 @@ class AnfitrionaDetailPage extends ConsumerWidget {
                   style: const TextStyle(fontSize: 14, color: Colors.black54),
                 ),
                 const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.location_on,
-                      size: 14,
-                      color: Colors.blue.shade600,
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        location,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.blue.shade600,
-                        ),
+                FutureBuilder<String?>(
+                  future: GeocodingService.getAddressFromCoordinates(
+                    latitude: latitude,
+                    longitude: longitude,
+                  ),
+                  builder: (context, snapshot) {
+                    final displayText =
+                        snapshot.hasData && snapshot.data != null
+                        ? snapshot.data!
+                        : 'Lat: ${latitude.toStringAsFixed(6)}, Lng: ${longitude.toStringAsFixed(6)}';
+
+                    return GestureDetector(
+                      onTap: () async {
+                        // Abrir Google Maps con las coordenadas
+                        final url = Uri.parse(
+                          'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude',
+                        );
+
+                        try {
+                          await launchUrl(
+                            url,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('No se pudo abrir Google Maps'),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            size: 14,
+                            color: Colors.blue.shade600,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              displayText,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.blue.shade600,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            Icons.open_in_new,
+                            size: 14,
+                            color: Colors.blue.shade400,
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
               ],
             ),
