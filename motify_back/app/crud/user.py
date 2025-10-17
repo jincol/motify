@@ -1,102 +1,116 @@
 # app/crud/user.py
-from sqlalchemy.orm import Session
+
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy import func
 from typing import Optional, List, Dict, Any
 
-from app.db import models 
-from app.schemas import user as user_schemas # Importa tus esquemas Pydantic para usuarios
-from app.core.security import get_password_hash, verify_password # Importa utilidades
+from app.db import models
+from app.schemas import user as user_schemas  # Importa tus esquemas Pydantic para usuarios
+from app.core.security import get_password_hash, verify_password  # Importa utilidades
 
-def get_user_by_id(db: Session, user_id: int) -> Optional[models.User]:
+
+async def get_user_by_id(db: AsyncSession, user_id: int) -> Optional[models.User]:
     """
     Obtiene un usuario por su ID.
     """
-    return db.query(models.User).filter(models.User.id == user_id).first()
+    result = await db.execute(select(models.User).filter(models.User.id == user_id))
+    return result.scalar_one_or_none()
 
-def get_user_by_username(db: Session, username: str) -> Optional[models.User]:
+async def get_user_by_username(db: AsyncSession, username: str) -> Optional[models.User]:
     """
     Obtiene un usuario por su nombre de usuario.
     """
-    return db.query(models.User).filter(models.User.username == username).first()
+    result = await db.execute(
+        select(models.User).filter(func.lower(models.User.username) == username.lower())
+    )
+    return result.scalar_one_or_none()
 
-def get_user_by_email(db: Session, email: str) -> Optional[models.User]:
+async def get_user_by_email(db: AsyncSession, email: str) -> Optional[models.User]:
     """
     Obtiene un usuario por su email.
     """
-    return db.query(models.User).filter(models.User.email == email).first()
+    result = await db.execute(
+        select(models.User).filter(models.User.email == email)
+    )
+    return result.scalar_one_or_none()
 
-def get_users(db: Session, skip: int = 0, limit: int = 100) -> List[models.User]:
+async def get_users(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[models.User]:
     """
     Obtiene una lista de usuarios con paginación.
     """
-    return db.query(models.User).offset(skip).limit(limit).all()
+    result = await db.execute(
+        select(models.User).offset(skip).limit(limit)
+    )
+    return result.scalars().all()
 
-def create_user(db: Session, user_in: user_schemas.UserCreate) -> models.User:
+async def create_user(db: AsyncSession, user_in: user_schemas.UserCreate) -> models.User:
     """
     Crea un nuevo usuario en la base de datos.
     """
     hashed_password = get_password_hash(user_in.password)
-    db_user_data = user_in.dict(exclude={"password"}) 
+    db_user_data = user_in.dict(exclude={"password"})
+    db_user_data["username"] = db_user_data["username"].lower()
     db_user_data["password_hash"] = hashed_password
-    
+    print("DEBUG db_user_data:", db_user_data)
     if db_user_data["role"] == "super_admin":
         db_user_data["is_superuser"] = True
-    
     db_user = models.User(**db_user_data)
     db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
+    await db.commit()
+    await db.refresh(db_user)
     return db_user
 
-def update_user(
-    db: Session, 
-    user_db_obj: models.User, 
-    user_in: user_schemas.UserUpdate  
+async def update_user(
+    db: AsyncSession,
+    user_db_obj: models.User,
+    user_in: user_schemas.UserUpdate
 ) -> models.User:
     """
     Actualiza un usuario existente.
     'user_db_obj' es el objeto usuario obtenido de la BD.
     'user_in' es un esquema Pydantic con los campos a actualizar.
     """
-
-    update_data = user_in.dict(exclude_unset=True) 
-
+    update_data = user_in.dict(exclude_unset=True)
+    print("DEBUG user_in:", user_in)
+    print("DEBUG update_data:", update_data)
     if "password" in update_data and update_data["password"]:
         hashed_password = get_password_hash(update_data["password"])
-        del update_data["password"] 
+        del update_data["password"]
         update_data["password_hash"] = hashed_password
-
     for field, value in update_data.items():
+        print(f"Set {field} = {value}")
         setattr(user_db_obj, field, value)
-    
-    db.add(user_db_obj) 
-    db.commit()
-    db.refresh(user_db_obj)
+    db.add(user_db_obj)
+    await db.commit()
+    await db.refresh(user_db_obj)
     return user_db_obj
 
-def delete_user_logically(db: Session, user_id: int) -> Optional[models.User]:
+async def delete_user_logically(db: AsyncSession, user_id: int) -> Optional[models.User]:
     """
     Marca un usuario como inactivo (eliminación lógica).
     """
-    user_db_obj = get_user_by_id(db, user_id=user_id)
+    user_db_obj = await get_user_by_id(db, user_id=user_id)
     if user_db_obj:
         user_db_obj.is_active = False
+        user_db_obj.work_state = "INACTIVO"
         db.add(user_db_obj)
-        db.commit()
-        db.refresh(user_db_obj)
+        await db.commit()
+        await db.refresh(user_db_obj)
     return user_db_obj
 
-def delete_user_physically(db: Session, user_id: int) -> Optional[models.User]:
+async def delete_user_physically(db: AsyncSession, user_id: int) -> Optional[models.User]:
     """
     Elimina físicamente un usuario de la base de datos.
-    ¡Usar con precaución debido a posibles problemas de integridad referencial!
+    ¡Usar con precaución debido a posibles problemas de integridad referencial - NO SEAS GILBERTO! 
     """
-    user_db_obj = get_user_by_id(db, user_id=user_id)
+    user_db_obj = await get_user_by_id(db, user_id=user_id)
     if user_db_obj:
-        db.delete(user_db_obj)
-        db.commit()
-    return user_db_obj 
+        await db.delete(user_db_obj)
+        await db.commit()
+    return user_db_obj
 
-def authenticate_user(db: Session, *, username: str, password: str) -> Optional[models.User]:
+async def authenticate_user(db: AsyncSession, *, username: str, password: str) -> Optional[models.User]:
     """
     Autentica un usuario.
 
@@ -104,20 +118,13 @@ def authenticate_user(db: Session, *, username: str, password: str) -> Optional[
     2. Si el usuario existe, verifica su contraseña.
     3. Si la contraseña es correcta, devuelve el objeto User del modelo.
     4. En cualquier otro caso (usuario no encontrado o contraseña incorrecta), devuelve None.
-
-    :param db: La sesión de SQLAlchemy.
-    :param username: El nombre de usuario a autenticar.
-    :param password: La contraseña en texto plano a verificar.
-    :return: El objeto User si la autenticación es exitosa, None en caso contrario.
     """
-    db_user = get_user_by_username(db, username=username)
+    db_user = await get_user_by_username(db, username=username)
     if not db_user:
-        return None 
+        return None
     if not verify_password(password, db_user.password_hash):
-        return None  
-    
+        return None
     if not db_user.is_active:
-        return None 
-
+        return None
     return db_user
 

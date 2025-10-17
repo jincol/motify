@@ -80,6 +80,7 @@ class AttendanceService {
 
       if (!context.mounted) return;
       if (response.statusCode == 200) {
+        print('onSuccess ejecutado - asistencia registrada');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Asistencia registrada correctamente.')),
         );

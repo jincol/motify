@@ -1,36 +1,283 @@
+import 'package:motify/core/providers/admin_users_notifier.dart';
+import 'package:motify/features/admin_motorized/application/users_provider.dart';
+import 'package:motify/features/auth/application/auth_notifier.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/services/photo_service.dart';
+import 'package:motify/core/services/user_service.dart';
+import 'package:motify/core/widgets/main_drawer.dart';
+import '../../../../core/widgets/panel_app_bar.dart';
+import '../../../../core/widgets/rider_form.dart';
 import 'package:flutter/material.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_team_screen.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'dart:convert';
 
-class AdminMotorizadoMainScreen extends StatefulWidget {
+String _getTitleForIndex(int index) {
+  switch (index) {
+    case 0:
+      return 'Panel Motorizados';
+    case 1:
+      return 'Gestión de Equipo';
+    case 2:
+      return 'Reportes';
+    case 3:
+      return 'Chat';
+    default:
+      return '';
+  }
+}
+
+class AdminMotorizadoMainScreen extends ConsumerStatefulWidget {
   const AdminMotorizadoMainScreen({super.key});
 
   @override
-  State<AdminMotorizadoMainScreen> createState() =>
+  ConsumerState<AdminMotorizadoMainScreen> createState() =>
       _AdminMotorizadoMainScreenState();
 }
 
-class _AdminMotorizadoMainScreenState extends State<AdminMotorizadoMainScreen> {
+class _AdminMotorizadoMainScreenState
+    extends ConsumerState<AdminMotorizadoMainScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
-    AdminMotorizadoDashboardScreen(),
-    AdminTeamScreen(),
-    Center(child: Text('Chat')),
-    Center(child: Text('Otro')),
-  ];
+  WebSocketChannel? _channel;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration.zero, () {
+      try {
+        final authState = ref.read(authNotifierProvider);
+        final token = authState.token;
+        if (token == null) return;
+        final wsUrl = 'ws://192.168.31.166:8000/ws/events?token=$token';
+        final channel = WebSocketChannel.connect(Uri.parse(wsUrl));
+        channel.stream.listen(
+          (message) {
+            try {
+              final data = jsonDecode(message);
+              if (data['type'] == 'estado_actualizado') {
+                final usuarioId = data['usuario_id'];
+                final nuevoEstado = data['nuevo_estado'];
+                ref
+                    .read(adminMotorizedUsersProvider.notifier)
+                    .updateUserState(usuarioId, nuevoEstado);
+                ref.refresh(motorizadoUsersProvider);
+              }
+            } catch (e) {
+              print('Error procesando mensaje WebSocket: $e');
+            }
+          },
+          onError: (error) {
+            print('Error en WebSocket: $error');
+          },
+          onDone: () {
+            print('WebSocket cerrado');
+          },
+        );
+      } catch (e, st) {
+        print('Error al conectar WebSocket: $e\n$st');
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _channel?.sink.close();
+    super.dispose();
+  }
+
+  void _onAddMotorizado() async {
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (modalContext) => Scaffold(
+        backgroundColor: Colors.transparent,
+        body: RiderForm(
+          title: 'Agregar Motorizado',
+          onSubmit: (data) async {
+            final authState = ref.read(authNotifierProvider);
+            if (authState.role == 'ADMIN_MOTORIZADO') {
+              String? fotoUrl = data['foto'];
+              final userService = UserService();
+              final response = await userService.createUser(
+                nombre: data['nombre'],
+                apellido: data['apellido'],
+                usuario: data['usuario'],
+                email: data['email'],
+                contrasena: data['contrasena'],
+                role: 'MOTORIZADO',
+                telefono: data['telefono'],
+                placaUnidad: data['placa_unidad'],
+                fotoUrl: fotoUrl,
+                token: authState.token!,
+              );
+              if (response.statusCode == 201) {
+                ref.read(adminMotorizedUsersProvider.notifier).refresh();
+                Navigator.of(modalContext).pop(true);
+                ref.refresh(motorizadoUsersProvider);
+              } else {
+                String errorMsg;
+                try {
+                  final decoded = jsonDecode(response.body);
+                  if (decoded is Map && decoded.containsKey('detail')) {
+                    final detail = decoded['detail'];
+                    if (detail is List && detail.isNotEmpty) {
+                      errorMsg = detail[0]['msg'] ?? 'Error de validación';
+                    } else if (detail is String) {
+                      errorMsg = detail;
+                    } else {
+                      errorMsg = 'Ocurrió un error inesperado';
+                    }
+                  } else {
+                    errorMsg = 'Ocurrió un error inesperado';
+                  }
+                } catch (_) {
+                  errorMsg = 'Ocurrió un error inesperado';
+                }
+                ScaffoldMessenger.of(modalContext).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            errorMsg,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontSize: 13,
+                            ),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: Colors.red[700],
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    margin: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    duration: Duration(seconds: 2),
+                    elevation: 10,
+                  ),
+                );
+              }
+            } else {
+              ScaffoldMessenger.of(modalContext).showSnackBar(
+                SnackBar(
+                  content: Text('No hay token. Inicia sesión nuevamente.'),
+                ),
+              );
+            }
+          },
+        ),
+      ),
+    );
+    if (result == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white, size: 28),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Usuario creado correctamente',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.orange[500],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          duration: Duration(seconds: 2),
+          elevation: 8,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> screens = [
+      AdminMotorizadoDashboardScreen(),
+      AdminTeamScreen(
+        onUserDeleted: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.delete, color: Colors.white, size: 28),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Usuario eliminado correctamente',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.green[600],
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              margin: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              duration: Duration(seconds: 2),
+              elevation: 8,
+            ),
+          );
+        },
+      ),
+      Center(child: Text('Chat')),
+      Center(child: Text('Otro')),
+    ];
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F5F2),
-      body: _screens[_selectedIndex],
+      appBar: PanelAppBar(
+        title: _getTitleForIndex(_selectedIndex),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none, color: Colors.white),
+            onPressed: () {},
+          ),
+        ],
+      ),
+      drawer: const MainDrawer(),
+      body: screens[_selectedIndex],
+      floatingActionButton: _selectedIndex == 1
+          ? FloatingActionButton(
+              backgroundColor: const Color(0xFFF97316),
+              child: const Icon(Icons.add, color: Colors.white),
+              onPressed: _onAddMotorizado,
+            )
+          : null,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {
           setState(() {
             _selectedIndex = index;
           });
+          if (index == 0) {
+            // 0 es el tab del dashboard
+            ref.refresh(motorizadoUsersProvider);
+          }
         },
         type: BottomNavigationBarType.fixed,
         selectedItemColor: const Color(0xFFF97316),

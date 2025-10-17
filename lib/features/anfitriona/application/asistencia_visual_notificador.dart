@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:motify/features/auth/application/auth_notifier.dart';
+import 'package:motify/features/shared/application/attendance_history_provider.dart';
 import '../../../core/services/attendance_service.dart';
 
 class AsistenciaVisualState {
@@ -31,7 +33,8 @@ class AsistenciaVisualState {
 }
 
 class AsistenciaVisualNotifier extends StateNotifier<AsistenciaVisualState> {
-  AsistenciaVisualNotifier() : super(AsistenciaVisualState());
+  final Ref ref;
+  AsistenciaVisualNotifier(this.ref) : super(AsistenciaVisualState());
 
   Future<void> marcarEntrada(BuildContext context) async {
     state = state.copyWith(isLoading: true, accion: 'entrada');
@@ -45,6 +48,11 @@ class AsistenciaVisualNotifier extends StateNotifier<AsistenciaVisualState> {
           puedeMarcarSalida: true,
           accion: '',
         );
+        final userId = ref.read(authNotifierProvider).userId;
+        if (userId != null) {
+          print('Invalidando historial para userId: $userId');
+          ref.invalidate(attendanceHistoryProvider(userId));
+        }
       },
     );
   }
@@ -61,6 +69,10 @@ class AsistenciaVisualNotifier extends StateNotifier<AsistenciaVisualState> {
           puedeMarcarSalida: false,
           accion: '',
         );
+        final userId = ref.read(authNotifierProvider).userId;
+        if (userId != null) {
+          ref.invalidate(attendanceHistoryProvider(userId));
+        }
       },
     );
   }
@@ -68,5 +80,5 @@ class AsistenciaVisualNotifier extends StateNotifier<AsistenciaVisualState> {
 
 final asistenciaVisualProvider =
     StateNotifierProvider<AsistenciaVisualNotifier, AsistenciaVisualState>(
-      (ref) => AsistenciaVisualNotifier(),
+      (ref) => AsistenciaVisualNotifier(ref),
     );

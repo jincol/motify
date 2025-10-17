@@ -16,13 +16,17 @@ class PhotoService {
   }
 
   // Subimos fotitoo
-  static Future<String> uploadPhoto(File file) async {
+  static Future<String> uploadPhoto(
+    File file, {
+    String tipo = 'attendance',
+  }) async {
     final dio = Dio();
     final formData = FormData.fromMap({
       'file': await MultipartFile.fromFile(
         file.path,
         filename: 'evidencia.jpg',
       ),
+      'tipo': tipo,
     });
 
     final response = await dio.post(
@@ -31,7 +35,6 @@ class PhotoService {
     );
 
     if (response.statusCode == 200 && response.data['url'] != null) {
-      // Si tu backend responde con /fotos/..., agrega el host si lo necesitas:
       return 'http://192.168.31.166:8000${response.data['url']}';
     } else {
       throw Exception('Error al subir la foto');

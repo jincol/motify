@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:motify/features/auth/application/auth_notifier.dart';
+import 'package:motify/features/shared/widgets/attendance_history_screen.dart';
 
 class MainDrawer extends StatelessWidget {
   const MainDrawer({Key? key}) : super(key: key);
@@ -20,7 +21,10 @@ class MainDrawer extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.arrow_back, color: AppTheme.darkText),
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: Color.fromARGB(221, 105, 70, 70),
+                  ),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
@@ -49,7 +53,12 @@ class MainDrawer extends StatelessWidget {
             icon: Icons.history,
             text: 'Historial de Asistencias',
             onTap: () {
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(); // Cierra el drawer
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => AttendanceHistoryScreen(),
+                ),
+              );
             },
           ),
           _buildDrawerItem(

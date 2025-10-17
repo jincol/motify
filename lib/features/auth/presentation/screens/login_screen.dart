@@ -8,11 +8,17 @@ import '../../application/auth_state.dart';
 final TextEditingController emailController = TextEditingController();
 final TextEditingController passwordController = TextEditingController();
 
-class LoginScreen extends ConsumerWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
+  @override
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  bool _showPassword = false;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final authNotifier = ref.read(authNotifierProvider.notifier);
     final authState = ref.watch(authNotifierProvider);
 
@@ -101,6 +107,12 @@ class LoginScreen extends ConsumerWidget {
                 hint: 'Contraseña',
                 icon: Icons.lock_outline,
                 isPassword: true,
+                showPassword: _showPassword,
+                onTogglePassword: () {
+                  setState(() {
+                    _showPassword = !_showPassword;
+                  });
+                },
                 controller: passwordController,
               ),
               const SizedBox(height: 10),

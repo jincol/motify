@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/widgets/main_drawer.dart';
+import 'package:motify/core/widgets/main_drawer.dart';
+import 'package:motify/core/widgets/panel_app_bar.dart';
 import '../widgets/asistencia_card.dart';
 import '../widgets/asistencia_buttons.dart';
 import '../widgets/anfitriona_bottom_nav.dart';
@@ -11,21 +12,7 @@ class AsistenciaAnfitrionaScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F5F2),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF97316),
-        elevation: 1.0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Control de Asistencia',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-            letterSpacing: 0.5,
-          ),
-        ),
-        centerTitle: true,
-      ),
+      appBar: const PanelAppBar(title: 'Control de Asistencia'),
       drawer: const MainDrawer(),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),

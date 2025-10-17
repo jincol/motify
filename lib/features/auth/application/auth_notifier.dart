@@ -33,10 +33,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
           final meData = jsonDecode(meResponse.body);
           final role = meData['role'];
           final workState = meData['work_state'];
+          final userId = meData['id'];
           state = AuthState(
             authStatus: AuthStatus.authenticated,
             role: role,
             workState: workState,
+            token: token,
+            userId: userId,
           );
         } else {
           state = AuthState(authStatus: AuthStatus.error);
@@ -63,12 +66,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
     );
     if (meResponse.statusCode == 200) {
       final meData = jsonDecode(meResponse.body);
+      final userId = meData['id'];
       final role = meData['role'];
       final workState = meData['work_state'];
       state = AuthState(
         authStatus: AuthStatus.authenticated,
         role: role,
         workState: workState,
+        token: token,
+        userId: userId,
       );
     }
   }
