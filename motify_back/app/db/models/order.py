@@ -16,7 +16,7 @@ class Order(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     code = Column(String(50), unique=True, index=True, nullable=False)
-    courier_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    courier_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     admin_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     title = Column(String(255), nullable=False)
     sender_name = Column(String(255), nullable=False)

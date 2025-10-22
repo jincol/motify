@@ -1,12 +1,11 @@
-// lib/core/services/pedido_service.dart
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/pedido_model.dart';
+import '../constants/api_config.dart';
 
 class PedidoService {
-  static const String _baseUrl = 'http://10.0.2.2:8000/api/v1';
+  static final String _baseUrl = ApiConfig.baseUrl;
   static const _storage = FlutterSecureStorage();
 
   /// Obtener pedidos del motorizado (MOCK temporal)
@@ -207,53 +206,43 @@ class PedidoService {
     String? descripcion,
     String? instrucciones,
   }) async {
-    // TODO: Descomentar cuando el backend esté listo
-    /*
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('No token found');
 
+      // Construir body con las keys en inglés que espera el backend
+      final body = jsonEncode({
+        'title': titulo,
+        'sender_name': nombreRemitente,
+        if (telefono != null) 'sender_phone': telefono,
+        if (descripcion != null) 'description': descripcion,
+        if (instrucciones != null) 'instructions': instrucciones,
+        // NOTA: courier_id, admin_id y code no se envían desde el frontend
+      });
+
       final response = await http.post(
-        Uri.parse('$_baseUrl/pedidos/crear'),
+        // Añadimos la barra final para evitar redirecciones 307 desde FastAPI
+        Uri.parse('$_baseUrl/orders/'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({
-          'titulo': titulo,
-          'nombre_remitente': nombreRemitente,
-          'telefono_remitente': telefono,
-          'direccion_recojo': direccionRecojo,
-          'direccion_entrega': direccionEntrega,
-          'descripcion': descripcion,
-          'instrucciones': instrucciones,
-        }),
+        body: body,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print('✅ Pedido creado');
+        print('✅ Pedido creado (backend)');
         return true;
       } else {
-        print('❌ Error al crear pedido: ${response.statusCode}');
+        print(
+          '❌ Error al crear pedido: ${response.statusCode} - ${response.body}',
+        );
         return false;
       }
     } catch (e) {
       print('❌ Error en crearPedido: $e');
       return false;
     }
-    */
-
-    // MOCK TEMPORAL - Simular creación exitosa
-    await Future.delayed(const Duration(seconds: 2));
-    print('✅ [MOCK] Pedido creado');
-    print('   Título: $titulo');
-    print('   Remitente: $nombreRemitente');
-    print('   Teléfono: $telefono');
-    print('   Recojo: $direccionRecojo');
-    print('   Entrega: $direccionEntrega');
-    print('   Descripción: $descripcion');
-    print('   Instrucciones: $instrucciones');
-    return true;
   }
 }
 
@@ -267,7 +256,7 @@ class PedidoService {
 // import '../models/pedido_model.dart';
 
 // class PedidoService {
-//   static const String _baseUrl = 'http://10.0.2.2:8000/api/v1';
+//   static const String _baseUrl = 'http://192.168.31.166:8000/api/v1';
 //   static const _storage = FlutterSecureStorage();
 
 //   /// Obtener pedidos del motorizado

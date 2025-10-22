@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'auth_state.dart';
 import 'dart:convert';
+import 'package:motify/core/services/auth_repository.dart';
 
 class AuthNotifier extends StateNotifier<AuthState> {
   static const String _baseUrl = 'http://192.168.31.166:8000/api/v1/auth/token';
@@ -24,7 +25,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final token = data['access_token'];
-        await _storage.write(key: 'token', value: token);
+        final refresh = data['refresh_token'];
+        // Guardar ambos tokens usando AuthRepository centralizado
+        try {
+          await AuthRepository.saveTokens(
+            accessToken: token,
+            refreshToken: refresh ?? '',
+            alsoSaveToPrefs: true,
+          );
+        } catch (_) {
+          // fallback: escribir directamente si algo falla
+          await _storage.write(key: 'token', value: token);
+          if (refresh != null)
+            await _storage.write(key: 'refresh_token', value: refresh);
+        }
 
         final meResponse = await http.get(
           Uri.parse('http://192.168.31.166:8000/api/v1/users/me'),

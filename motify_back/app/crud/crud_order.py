@@ -3,7 +3,17 @@ from sqlalchemy.future import select
 from sqlalchemy import update, delete
 from app.db.models.order import Order
 from app.schemas.order import OrderCreate, OrderUpdate
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
+from datetime import datetime
+from uuid import uuid4
+
+
+def _generate_order_code() -> str:
+    """Genera un código legible y suficientemente único para pedidos."""
+    ts = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    suffix = uuid4().hex[:6].upper()
+    return f"PED-{ts}-{suffix}"
+
 
 class CRUDOrder:
     async def get(self, db: AsyncSession, order_id: int) -> Optional[Order]:
@@ -14,8 +24,22 @@ class CRUDOrder:
         result = await db.execute(select(Order).offset(skip).limit(limit))
         return result.scalars().all()
 
-    async def create(self, db: AsyncSession, obj_in: OrderCreate) -> Order:
-        db_obj = Order(**obj_in.dict())
+    async def create(self, db: AsyncSession, obj_in: OrderCreate, extra: Optional[Dict[str, Any]] = None) -> Order:
+        """
+        Crea un Order en DB.
+
+        - obj_in: campos que vienen del cliente (title, sender_name, sender_phone, description, instructions).
+        - extra: diccionario opcional con campos server-side (por ejemplo 'courier_id', 'admin_id').
+                 Recomendado: que el endpoint pase 'courier_id' tomado del token aquí.
+        """
+        data = obj_in.dict()
+        if extra:
+            data.update(extra)
+
+        if not data.get("code"):
+            data["code"] = _generate_order_code()
+
+        db_obj = Order(**data)
         db.add(db_obj)
         await db.commit()
         await db.refresh(db_obj)

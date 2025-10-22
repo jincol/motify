@@ -10,7 +10,27 @@ class OrderStatusEnum(str, Enum):
     cancelled = "cancelled"
     with_issue = "with_issue"
 
+
 class OrderBase(BaseModel):
+    title: str
+    sender_name: str
+    sender_phone: Optional[str] = None
+    description: Optional[str] = None
+    instructions: Optional[str] = None
+
+class OrderCreate(OrderBase):
+    pass
+
+class OrderUpdate(OrderBase):
+    title: str
+    sender_name: str
+    sender_phone: Optional[str] = None
+    description: Optional[str] = None
+    instructions: Optional[str] = None
+    status: Optional[OrderStatusEnum] = None
+
+class OrderInDBBase(BaseModel):
+    id: int
     code: str
     courier_id: Optional[int] = None
     admin_id: Optional[int] = None
@@ -20,15 +40,6 @@ class OrderBase(BaseModel):
     description: Optional[str] = None
     instructions: Optional[str] = None
     status: OrderStatusEnum = OrderStatusEnum.pending
-
-class OrderCreate(OrderBase):
-    pass
-
-class OrderUpdate(OrderBase):
-    pass
-
-class OrderInDBBase(OrderBase):
-    id: int
     created_at: datetime
     assigned_at: Optional[datetime]
     finished_at: Optional[datetime]

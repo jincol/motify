@@ -29,26 +29,30 @@ class PedidoModel {
 
   factory PedidoModel.fromJson(Map<String, dynamic> json) {
     return PedidoModel(
-      id: json['id_pedido'],
-      codigoPedido: json['codigo_pedido'],
-      motorizadoId: json['motorizado_id'],
-      titulo: json['titulo'],
-      nombreRemitente: json['nombre_remitente'],
-      telefono: json['telefono_remitente'],
-      descripcion: json['descripcion'],
-      instrucciones: json['instrucciones'],
-      estado: json['estado'],
+      id: json['id'] ?? json['id_pedido'],
+      codigoPedido: json['code'] ?? json['codigo_pedido'],
+      motorizadoId: json['courier_id'] ?? json['motorizado_id'],
+      titulo: json['title'] ?? json['titulo'],
+      nombreRemitente: json['sender_name'] ?? json['nombre_remitente'],
+      telefono: json['sender_phone'] ?? json['telefono_remitente'],
+      descripcion: json['description'] ?? json['descripcion'],
+      instrucciones: json['instructions'] ?? json['instrucciones'],
+      estado: json['status'] ?? json['estado'],
       paradas:
           (json['paradas'] as List?)
               ?.map((p) => ParadaModel.fromJson(p))
               .toList() ??
           [],
-      fechaCreacion: json['fecha_creacion'] != null
-          ? DateTime.parse(json['fecha_creacion'])
-          : null,
-      fechaAsignacion: json['fecha_asignacion'] != null
-          ? DateTime.parse(json['fecha_asignacion'])
-          : null,
+      fechaCreacion: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : (json['fecha_creacion'] != null
+                ? DateTime.parse(json['fecha_creacion'])
+                : null),
+      fechaAsignacion: json['assigned_at'] != null
+          ? DateTime.parse(json['assigned_at'])
+          : (json['fecha_asignacion'] != null
+                ? DateTime.parse(json['fecha_asignacion'])
+                : null),
     );
   }
 }
