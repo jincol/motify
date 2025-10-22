@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:motify/features/auth/application/auth_notifier.dart';
+import 'package:motify/core/constants/api_config.dart';
 
 class Attendance {
   final int id;
@@ -43,9 +44,7 @@ final attendanceHistoryProvider = FutureProvider.family
       print('Token: $token');
       if (token == null) throw Exception('No token found');
       final response = await http.get(
-        Uri.parse(
-          'http://192.168.31.166:8000/api/v1/attendance/?user_id=$userId',
-        ),
+        Uri.parse('${ApiConfig.baseUrl}/attendance/?user_id=$userId'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:motify/core/constants/api_config.dart';
 import '../models/pedido_model.dart';
-import '../constants/api_config.dart';
 
 class PedidoService {
-  static final String _baseUrl = ApiConfig.baseUrl;
+  static final String _baseUrl = ApiConfig.baseApiUrl;
   static const _storage = FlutterSecureStorage();
 
   /// Obtener pedidos del motorizado (MOCK temporal)
@@ -154,7 +154,7 @@ class PedidoService {
       if (token == null) throw Exception('No token found');
 
       final response = await http.post(
-        Uri.parse('$_baseUrl/paradas/$paradaId/confirmar'),
+            Uri.parse('${ApiConfig.baseApiUrl}/paradas/$paradaId/confirmar'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -221,7 +221,7 @@ class PedidoService {
       });
 
       final response = await http.post(
-        // Añadimos la barra final para evitar redirecciones 307 desde FastAPI
+        // Add trailing slash to match backend router (avoid 307 Temporary Redirect)
         Uri.parse('$_baseUrl/orders/'),
         headers: {
           'Authorization': 'Bearer $token',
@@ -285,7 +285,7 @@ class PedidoService {
 //     }
 //   }
 
-//   /// Confirmar parada (recojo o entrega) con foto
+            
 //   static Future<bool> confirmarParada({
 //     required int paradaId,
 //     required String fotoUrl,

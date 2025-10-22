@@ -1,18 +1,18 @@
-import 'dart:io';
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:motify/core/services/photo_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:motify/core/providers/location_tracking_provider.dart';
+import 'package:motify/core/constants/api_config.dart';
 
 class AttendanceService {
-  static const String _attendanceUrl =
-      'http://192.168.31.166:8000/api/v1/attendance/check-in';
+  static final String _attendanceUrl =
+      '${ApiConfig.baseUrl}/attendance/check-in';
   static final _storage = const FlutterSecureStorage();
 
   static Future<void> marcarAsistencia({
@@ -97,13 +97,19 @@ class AttendanceService {
                 workState: 'JORNADA_ACTIVA',
                 token: token,
               );
-          print('🚀 Tracking iniciado automáticamente');
+          developer.log(
+            'Tracking iniciado automáticamente',
+            name: 'attendance_service',
+          );
         } else if (tipo == 'check-out') {
           // Guardar 'INACTIVO' en SharedPreferences antes de detener tracking
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('work_state', 'INACTIVO');
           await ref.read(locationTrackingProvider.notifier).stopTracking();
-          print('⏹️ Tracking detenido automáticamente');
+          developer.log(
+            'Tracking detenido automáticamente',
+            name: 'attendance_service',
+          );
         }
 
         if (!context.mounted) return;

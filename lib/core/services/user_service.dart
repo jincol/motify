@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:motify/core/models/user.dart';
+import 'package:motify/core/constants/api_config.dart';
 
 class UserService {
-  static const String _baseUrl = 'http://192.168.31.166:8000/api/v1/users/';
+  static final String _baseUrl = '${ApiConfig.baseUrl}/users/';
 
   Future<http.Response> createUser({
     required String nombre,

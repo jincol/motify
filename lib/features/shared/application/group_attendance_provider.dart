@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:motify/features/auth/application/auth_notifier.dart';
-import 'attendance_history_provider.dart'; // Usa el modelo Attendance
+import 'attendance_history_provider.dart';
+import 'package:motify/core/constants/api_config.dart';
 
 final groupAttendanceTodayProvider = FutureProvider<List<Attendance>>((
   ref,
@@ -10,7 +11,7 @@ final groupAttendanceTodayProvider = FutureProvider<List<Attendance>>((
   final token = ref.read(authNotifierProvider).token;
   if (token == null) throw Exception('No token found');
   final response = await http.get(
-    Uri.parse('http://192.168.31.166:8000/api/v1/attendance/by-group'),
+    Uri.parse('${ApiConfig.baseApiUrl}/attendance/by-group'),
     headers: {
       'Authorization': 'Bearer $token',
       'Content-Type': 'application/json',

@@ -5,9 +5,11 @@ import 'package:http/http.dart' as http;
 import 'auth_state.dart';
 import 'dart:convert';
 import 'package:motify/core/services/auth_repository.dart';
+import 'dart:developer' as developer;
+import 'package:motify/core/constants/api_config.dart';
 
 class AuthNotifier extends StateNotifier<AuthState> {
-  static const String _baseUrl = 'http://192.168.31.166:8000/api/v1/auth/token';
+  static final String _baseUrl = '${ApiConfig.baseApiUrl}/auth/token';
   final _storage = const FlutterSecureStorage();
   AuthNotifier() : super(AuthState(authStatus: AuthStatus.unknown)) {
     Future.delayed(const Duration(seconds: 1), () {
@@ -26,7 +28,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
         final data = jsonDecode(response.body);
         final token = data['access_token'];
         final refresh = data['refresh_token'];
-        // Guardar ambos tokens usando AuthRepository centralizado
         try {
           await AuthRepository.saveTokens(
             accessToken: token,
@@ -34,14 +35,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
             alsoSaveToPrefs: true,
           );
         } catch (_) {
-          // fallback: escribir directamente si algo falla
           await _storage.write(key: 'token', value: token);
-          if (refresh != null)
+          if (refresh != null) {
             await _storage.write(key: 'refresh_token', value: refresh);
+          }
         }
 
         final meResponse = await http.get(
-          Uri.parse('http://192.168.31.166:8000/api/v1/users/me'),
+          Uri.parse('${ApiConfig.baseUrl}/users/me'),
           headers: {'Authorization': 'Bearer $token'},
         );
         if (meResponse.statusCode == 200) {
@@ -81,7 +82,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await prefs.remove('last_location_sent');
     } catch (e) {
       // no bloquear logout si falla limpiar prefs
-      print('⚠️ Error limpiando SharedPreferences en logout: $e');
+      developer.log(
+        'Error limpiando SharedPreferences en logout: $e',
+        name: 'auth_notifier',
+      );
     }
 
     state = AuthState(authStatus: AuthStatus.unauthenticated);
@@ -91,7 +95,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     final token = await _storage.read(key: 'token');
     if (token == null) return;
     final meResponse = await http.get(
-      Uri.parse('http://192.168.31.166:8000/api/v1/users/me'),
+      Uri.parse('${ApiConfig.baseUrl}/users/me'),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (meResponse.statusCode == 200) {

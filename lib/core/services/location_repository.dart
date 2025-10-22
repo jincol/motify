@@ -2,9 +2,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:motify/core/services/auth_repository.dart';
+import 'package:motify/core/constants/api_config.dart';
 
 class LocationRepository {
-  static const String _baseUrl = 'http://192.168.31.166:8000/api/v1';
+  static final String _baseUrl = ApiConfig.baseUrl;
 
   /// Enviar ubicación al backend
   static Future<bool> sendLocation({

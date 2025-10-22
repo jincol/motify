@@ -1,12 +1,11 @@
-// lib/core/services/auth_repository.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../constants/api_config.dart';
+import 'package:motify/core/constants/api_config.dart';
 
 class AuthRepository {
-  static final String _baseUrl = ApiConfig.baseUrl;
+  static final String _baseUrl = ApiConfig.baseApiUrl;
   static const _secure = FlutterSecureStorage();
 
   /// Guarda access + refresh tokens en secure storage.
@@ -34,8 +33,6 @@ class AuthRepository {
     return await _secure.read(key: 'refresh_token');
   }
 
-  /// Intenta refrescar el access token usando el refresh token.
-  /// Si tiene éxito, actualiza secure storage y SharedPreferences (auth_token) y retorna el nuevo access token.
   static Future<String?> refreshAccessToken() async {
     final refresh = await readRefreshToken();
     if (refresh == null) return null;

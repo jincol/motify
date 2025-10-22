@@ -1,19 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import IntegrityError
 from typing import List
 from app.api import deps
-from app.db.database import get_async_db
-from app.schemas.order import Order, OrderCreate, OrderUpdate
-from app.crud.crud_order import crud_order
 from app.db.models import User
+from app.db.database import get_async_db
+from sqlalchemy.exc import IntegrityError
+from app.crud.crud_order import crud_order
+from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, HTTPException
+from app.schemas.order import Order, OrderCreate, OrderUpdate
 
 router = APIRouter(
     tags=["orders"],
 )
 
-
-@router.post("/", response_model=Order)
+@router.post("/", response_model=Order, status_code=201)
 async def create_order(
     order_in: OrderCreate,
     db: AsyncSession = Depends(get_async_db),

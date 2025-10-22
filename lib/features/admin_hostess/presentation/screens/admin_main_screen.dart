@@ -15,6 +15,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
 import 'package:motify/core/providers/admin_users_notifier.dart';
 import 'dart:convert';
+import 'package:motify/core/constants/api_config.dart';
 
 class AdminHostessMainScreen extends ConsumerStatefulWidget {
   const AdminHostessMainScreen({super.key});
@@ -50,8 +51,10 @@ class _AdminHostessMainScreenState
     try {
       final authState = ref.read(authNotifierProvider);
       final token = authState.token;
+      final host = ApiConfig.baseUrl.replaceAll(RegExp(r"/api/v1$"), "");
+      final hostNoScheme = host.replaceAll(RegExp(r"^https?://"), "");
       channel = WebSocketChannel.connect(
-        Uri.parse('ws://192.168.31.166:8000/ws/events?token=$token'),
+        Uri.parse('ws://$hostNoScheme/ws/events?token=$token'),
       );
       channel.stream.listen(
         (message) {

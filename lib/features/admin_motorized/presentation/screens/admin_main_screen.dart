@@ -12,6 +12,8 @@ import 'admin_dashboard_screen.dart';
 import 'admin_team_screen.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'dart:convert';
+import 'dart:developer' as developer;
+import 'package:motify/core/constants/api_config.dart';
 
 String _getTitleForIndex(int index) {
   switch (index) {
@@ -50,7 +52,9 @@ class _AdminMotorizadoMainScreenState
         final authState = ref.read(authNotifierProvider);
         final token = authState.token;
         if (token == null) return;
-        final wsUrl = 'ws://192.168.31.166:8000/ws/events?token=$token';
+        final host = ApiConfig.baseHost;
+        final hostNoScheme = host.replaceAll(RegExp(r"^https?://"), "");
+        final wsUrl = 'ws://$hostNoScheme/ws/events?token=$token';
         final channel = WebSocketChannel.connect(Uri.parse(wsUrl));
         channel.stream.listen(
           (message) {
@@ -65,18 +69,27 @@ class _AdminMotorizadoMainScreenState
                 ref.refresh(motorizadoUsersProvider);
               }
             } catch (e) {
-              print('Error procesando mensaje WebSocket: $e');
+              developer.log(
+                'Error procesando mensaje WebSocket: $e',
+                name: 'admin_main_screen',
+              );
             }
           },
           onError: (error) {
-            print('Error en WebSocket: $error');
+            developer.log(
+              'Error en WebSocket: $error',
+              name: 'admin_main_screen',
+            );
           },
           onDone: () {
-            print('WebSocket cerrado');
+            developer.log('WebSocket cerrado', name: 'admin_main_screen');
           },
         );
       } catch (e, st) {
-        print('Error al conectar WebSocket: $e\n$st');
+        developer.log(
+          'Error al conectar WebSocket: $e\n$st',
+          name: 'admin_main_screen',
+        );
       }
     });
   }

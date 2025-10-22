@@ -1,11 +1,12 @@
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
+import 'package:motify/core/constants/api_config.dart';
 
 class PhotoService {
   static final ImagePicker _picker = ImagePicker();
 
-  // 1. Tomar foto con la cámara
+  // Tomar foto con la cámara
   static Future<File?> takePhoto() async {
     final XFile? photo = await _picker.pickImage(
       source: ImageSource.camera,
@@ -15,10 +16,11 @@ class PhotoService {
     return File(photo.path);
   }
 
-  // Subimos fotitoo
+  // Subir foto al backend
   static Future<String> uploadPhoto(
     File file, {
     String tipo = 'attendance',
+    String? token,
   }) async {
     final dio = Dio();
     final formData = FormData.fromMap({
@@ -29,15 +31,23 @@ class PhotoService {
       'tipo': tipo,
     });
 
+    final uploadUrl = '${ApiConfig.baseUrl}/upload/photo';
+
     final response = await dio.post(
-      'http://192.168.31.166:8000/api/v1/upload/photo',
+      uploadUrl,
       data: formData,
+      options: Options(
+        headers: token != null ? {'Authorization': 'Bearer $token'} : null,
+      ),
     );
 
-    if (response.statusCode == 200 && response.data['url'] != null) {
-      return 'http://192.168.31.166:8000${response.data['url']}';
-    } else {
-      throw Exception('Error al subir la foto');
+    if (response.statusCode == 200 &&
+        response.data != null &&
+        response.data['url'] != null) {
+      final host = ApiConfig.baseHost;
+      return '$host${response.data['url']}';
     }
+
+    throw Exception('Error al subir la foto');
   }
 }

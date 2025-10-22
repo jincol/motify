@@ -1,9 +1,23 @@
 class ApiConfig {
-  // Default targets Android emulator mapping to host machine.
-  // For emulator: http://10.0.2.2:8000
-  // For a physical device on the same LAN: http://192.168.31.166:8000 (example)
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'http://192.168.31.166:8000/api/v1',
   );
+
+  static String get baseHost {
+    const suffix = '/api/v1';
+    if (baseUrl.endsWith(suffix)) {
+      print('Removing suffix from baseUrl: $baseUrl');
+      return baseUrl.substring(0, baseUrl.length - suffix.length);
+    }
+    return baseUrl;
+  }
+
+  static String get baseApiUrl {
+    const suffix = '/api/v1';
+    if (baseUrl.endsWith(suffix)) return baseUrl;
+    if (baseUrl.endsWith('/')) return baseUrl + 'api/v1';
+    print('Removing suffix from baseUrl: $baseUrl');
+    return baseUrl + suffix;
+  }
 }
