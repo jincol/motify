@@ -29,4 +29,3 @@ print(f"  DATABASE_URL: {settings.DATABASE_URL}")
 print(f"  SECRET_KEY: {'*' * len(settings.SECRET_KEY) if settings.SECRET_KEY else None}")
 print(f"  ALGORITHM: {settings.ALGORITHM}")
 print(f"  ACCESS_TOKEN_EXPIRE_MINUTES: {settings.ACCESS_TOKEN_EXPIRE_MINUTES}")
-

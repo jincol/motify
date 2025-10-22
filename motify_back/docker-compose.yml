@@ -12,15 +12,15 @@ services:
       - "${DB_PORT_HOST:-5433}:5432" 
     volumes:
       - postgres_data_motify:/var/lib/postgresql/data
-    healthcheck: # Opcional pero recomendado: verifica que la BD esté lista
+    healthcheck: 
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin_motorizados_dev} -d ${POSTGRES_DB:-asistencia_motorizados_dev_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  api_asistencia: # Nombre del servicio de tu API FastAPI
+  api_asistencia: 
     build:
-      context: . # El contexto es el directorio actual (donde está el docker-compose.yml)
+      context: . 
       dockerfile: Dockerfile # Especifica el nombre del Dockerfile a usar
     container_name: fastapi_asistencia_api_container
     restart: always

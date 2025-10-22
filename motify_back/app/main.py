@@ -8,9 +8,10 @@ from fastapi.staticfiles import StaticFiles
 from app.api.v1.endpoints import auth as auth_endpoints 
 from app.api.v1.endpoints import users as users_endpoints 
 from app.api.v1.endpoints import photo as photo_endpoints
+from app.api.v1.endpoints import order as order_endpoints
+from app.api.v1.endpoints import location as location_endpoints
 from app.api.v1.endpoints import ws_events as ws_events_endpoints
 from app.api.v1.endpoints import attendance as attendance_endpoints
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("INFO:     Aplicación iniciándose...")
@@ -45,6 +46,19 @@ app.include_router(
     attendance_endpoints.router,
     prefix=f"{settings.API_V1_STR}/attendance",
     tags=["Attendance"]
+)
+
+# Location Tracking (NUEVO)
+app.include_router(
+    location_endpoints.router,
+    prefix=f"{settings.API_V1_STR}/location",
+    tags=["Location"]
+)
+
+app.include_router(
+    order_endpoints.router,
+    prefix=f"{settings.API_V1_STR}/orders",
+    tags=["Orders"]
 )
 
 #fotos

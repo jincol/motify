@@ -1,5 +1,3 @@
-# alembic/env.py
-
 import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -9,7 +7,7 @@ from sqlalchemy import pool
 from alembic import context
 from app.core.config import settings
 from app.db.database import Base
-from app.db.models import user
+from app.db.models import user, user_location
 
 config = context.config
 
@@ -25,6 +23,8 @@ if not db_url_from_app_config:
     raise ValueError("DATABASE_URL no está configurada en app.core.config.settings")
 config.set_main_option('sqlalchemy.url', db_url_from_app_config)
 
+sync_db_url = db_url_from_app_config.replace("postgresql+asyncpg://", "postgresql://")
+config.set_main_option('sqlalchemy.url', sync_db_url)
 
 def run_migrations_offline() -> None:
     url = config.get_main_option("sqlalchemy.url")

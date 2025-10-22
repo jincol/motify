@@ -1,8 +1,9 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'auth_state.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
+import 'auth_state.dart';
+import 'dart:convert';
 
 class AuthNotifier extends StateNotifier<AuthState> {
   static const String _baseUrl = 'http://192.168.31.166:8000/api/v1/auth/token';
@@ -53,7 +54,22 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> logout() async {
+    // Borrar token seguro
     await _storage.delete(key: 'token');
+
+    // Limpiar SharedPreferences que pueda usar el background service
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_id');
+      await prefs.remove('auth_token');
+      await prefs.remove('work_state');
+      await prefs.remove('tracking_interval_seconds');
+      await prefs.remove('last_location_sent');
+    } catch (e) {
+      // no bloquear logout si falla limpiar prefs
+      print('⚠️ Error limpiando SharedPreferences en logout: $e');
+    }
+
     state = AuthState(authStatus: AuthStatus.unauthenticated);
   }
 

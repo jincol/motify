@@ -27,7 +27,7 @@ Admin Anfitriona Geocercas: Gestión de zonas geográficas de validación
 ✅ Mapa individual de motorizado con historial de ruta
 ✅ Mapa de ruta activa con polylines de recojo a entrega
 ✅ Autocompletar direcciones con Places API
-✅ Geocercas con círculos personalizados
+<!-- ✅ Geocercas con círculos personalizados -->
 ✅ Navegación integrada con Google Maps nativa
 ✅ Manejo de permisos de ubicación (Android/iOS)
 ✅ Modo offline: cache de última ubicación conocida

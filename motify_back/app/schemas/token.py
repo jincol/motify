@@ -2,8 +2,10 @@
 from pydantic import BaseModel
 from typing import Optional
 
+
 class Token(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer" # Siempre es "bearer" para JWT con OAuth2
 
 class TokenPayload(BaseModel): # Renombrado de TokenData para más claridad sobre su propósito

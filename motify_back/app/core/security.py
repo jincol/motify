@@ -69,3 +69,25 @@ def decode_token_payload(token: str) -> Optional[dict]:
     except JWTError: #<- me captura el error de token invalido
         return None
 
+def create_refresh_token(
+    subject: Union[str, Any], expires_delta: Optional[timedelta] = None
+) -> str:
+    """
+    Crea un refresh token JWT con expiración larga (ej. 7 días).
+    """
+    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(days=7))
+    to_encode = {"exp": expire, "sub": str(subject), "type": "refresh"}
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def verify_refresh_token(token: str) -> Optional[str]:
+    """
+    Verifica el refresh token y retorna el subject (username/id) si es válido.
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("type") != "refresh":
+            return None
+        return payload.get("sub")
+    except JWTError:
+        return None

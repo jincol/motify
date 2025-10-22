@@ -54,6 +54,7 @@ class AsistenciaVisualNotifier extends StateNotifier<AsistenciaVisualState> {
           ref.invalidate(attendanceHistoryProvider(userId));
         }
       },
+      ref: ref,
     );
   }
 
@@ -71,9 +72,11 @@ class AsistenciaVisualNotifier extends StateNotifier<AsistenciaVisualState> {
         );
         final userId = ref.read(authNotifierProvider).userId;
         if (userId != null) {
+          print('Invalidando historial para userId: $userId');
           ref.invalidate(attendanceHistoryProvider(userId));
         }
       },
+      ref: ref,
     );
   }
 }

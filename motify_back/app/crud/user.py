@@ -81,6 +81,9 @@ async def update_user(
     for field, value in update_data.items():
         print(f"Set {field} = {value}")
         setattr(user_db_obj, field, value)
+    name = update_data.get("name", user_db_obj.name)
+    lastname = update_data.get("lastname", user_db_obj.lastname)
+    user_db_obj.full_name = f"{name} {lastname}".strip()
     db.add(user_db_obj)
     await db.commit()
     await db.refresh(user_db_obj)

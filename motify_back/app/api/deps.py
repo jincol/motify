@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import AsyncSessionLocal
 from app.core import security
 from app.core.config import settings
-from app import crud
+from app.crud.user import get_user_by_username
 from app.db.models import User
 
 # --- Dependencia para obtener la sesión async de BD ---
@@ -32,7 +32,7 @@ async def get_current_user(
     username: Optional[str] = payload.get("sub")
     if username is None:
         raise credentials_exception
-    user = await crud.get_user_by_username(db, username=username)
+    user = await get_user_by_username(db, username=username)
     if user is None:
         raise credentials_exception
     return user

@@ -32,16 +32,18 @@ class JornadaControlScreen extends ConsumerWidget {
                   Navigator.of(context).pop();
                   Navigator.pushReplacementNamed(context, '/motorizadoPage');
                 },
+                ref: ref,
               );
             },
             onMarcarSalida: () async {
               await AttendanceService.marcarAsistencia(
                 context: context,
                 tipo: 'check-out',
-                onSuccess: () async {
-                  await ref.read(authNotifierProvider.notifier).fetchMe();
-                  Navigator.pushReplacementNamed(context, '/motorizadoJornada');
+                onSuccess: () {
+                  Navigator.of(context).pop();
+                  Navigator.pushReplacementNamed(context, '/motorizadoPage');
                 },
+                ref: ref,
               );
             },
           ),

@@ -3,9 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:motify/core/services/photo_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:motify/core/providers/location_tracking_provider.dart';
 
 class AttendanceService {
   static const String _attendanceUrl =
@@ -16,6 +19,7 @@ class AttendanceService {
     required BuildContext context,
     required String tipo,
     required VoidCallback onSuccess,
+    dynamic ref,
   }) async {
     try {
       if (await Permission.camera.request().isDenied) {
@@ -80,9 +84,37 @@ class AttendanceService {
 
       if (!context.mounted) return;
       if (response.statusCode == 200) {
-        print('onSuccess ejecutado - asistencia registrada');
+        // Obtener datos del usuario del response
+        final responseData = jsonDecode(response.body);
+        final userId = responseData['user_id'];
+
+        // INICIAR o DETENER tracking según el tipo
+        if (tipo == 'check-in') {
+          await ref
+              .read(locationTrackingProvider.notifier)
+              .startTracking(
+                userId: userId,
+                workState: 'JORNADA_ACTIVA',
+                token: token,
+              );
+          print('🚀 Tracking iniciado automáticamente');
+        } else if (tipo == 'check-out') {
+          // Guardar 'INACTIVO' en SharedPreferences antes de detener tracking
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('work_state', 'INACTIVO');
+          await ref.read(locationTrackingProvider.notifier).stopTracking();
+          print('⏹️ Tracking detenido automáticamente');
+        }
+
+        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Asistencia registrada correctamente.')),
+          SnackBar(
+            content: Text(
+              tipo == 'check-in'
+                  ? 'Entrada marcada con éxito.'
+                  : 'Salida marcada con éxito.',
+            ),
+          ),
         );
         onSuccess();
       } else {
