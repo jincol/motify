@@ -11,18 +11,17 @@ class StopTypeEnum(str, enum.Enum):
 class Stop(Base):
     __tablename__ = "stops"
 
-    id = Column("id_parada", Integer, primary_key=True, index=True)
-    order_id = Column("pedido_id", Integer, ForeignKey("pedidos.id_pedido"), nullable=False)
-    type = Column("tipo", Enum(StopTypeEnum), nullable=False)
-    order_index = Column("orden", Integer, nullable=False)
-    address = Column("direccion", String(500), nullable=True)
-    gps_lat = Column("gps_lat", Float, nullable=True)
-    gps_lng = Column("gps_lng", Float, nullable=True)
-    photo_url = Column("foto_url", String(512), nullable=True)
-    datetime_at = Column("fecha_hora", DateTime, nullable=True)
-    confirmed = Column("confirmado", Boolean, nullable=False, default=False)
-    notes = Column("notes", Text, nullable=True)  # <--- usa la columna DB "notes"
+    id = Column("id", Integer, primary_key=True, index=True)
+    order_id = Column("order_id", Integer, ForeignKey("orders.id"), nullable=False)
+    type = Column("type", Enum(StopTypeEnum, name="tipoparada_enum"), nullable=False)
+    stop_order = Column("stop_order", Integer, nullable=False)
+    address = Column("address", String(500), nullable=True)
+    latitude = Column("latitude", Float, nullable=True)
+    longitude = Column("longitude", Float, nullable=True)
+    photo_url = Column("photo_url", String(512), nullable=True)
+    timestamp = Column("timestamp", DateTime, nullable=True)
+    confirmed = Column("confirmed", Boolean, nullable=False, default=False)
+    notes = Column("notes", Text, nullable=True)
     created_at = Column("created_at", DateTime, default=datetime.utcnow)
     updated_at = Column("updated_at", DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
     order = relationship("Order", back_populates="stops")
