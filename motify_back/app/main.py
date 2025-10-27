@@ -62,7 +62,6 @@ app.include_router(
     tags=["Orders"]
 )
 
-# Stops (paradas)
 app.include_router(
     stops_endpoints.router,
     prefix=f"{settings.API_V1_STR}/stops",

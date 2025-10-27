@@ -8,9 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends, HTTPException
 from app.schemas.order import Order, OrderCreate, OrderUpdate
 
-router = APIRouter(
-    tags=["orders"],
-)
+router = APIRouter()
 
 @router.post("/", response_model=Order, status_code=201)
 async def create_order(
