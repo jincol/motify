@@ -15,6 +15,7 @@ async def confirm_stop(db: AsyncSession, stop: Stop, payload, confirmed_by: int)
     stop.confirmed = True
     stop.timestamp = datetime.utcnow()
     stop.updated_at = datetime.utcnow()
+    stop.confirmed_by = confirmed_by
     db.add(stop)
     await db.commit()
     await db.refresh(stop)

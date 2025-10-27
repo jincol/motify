@@ -22,6 +22,8 @@ class Stop(Base):
     timestamp = Column("timestamp", DateTime, nullable=True)
     confirmed = Column("confirmed", Boolean, nullable=False, default=False)
     notes = Column("notes", Text, nullable=True)
+    confirmed_by = Column("confirmed_by", Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column("created_at", DateTime, default=datetime.utcnow)
     updated_at = Column("updated_at", DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     order = relationship("Order", back_populates="stops")
+    confirmed_by_user = relationship("User", foreign_keys=[confirmed_by])
