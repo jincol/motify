@@ -1,12 +1,12 @@
 import 'dart:ui';
 import 'dart:async';
+import 'location_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:motify/core/services/location_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'location_repository.dart';
 
 @pragma('vm:entry-point')
 class BackgroundLocationService {
@@ -25,11 +25,10 @@ class BackgroundLocationService {
       _channelId,
       _channelName,
       description: 'Tracking de ubicación en tiempo real',
-      importance:
-          Importance.high, // Cambiado de low a high para que sea visible
-      playSound: false, // Sin sonido para no molestar
-      enableVibration: false, // Sin vibración
-      showBadge: true, // Mostrar badge en el ícono de la app
+      importance: Importance.high,
+      playSound: false,
+      enableVibration: false,
+      showBadge: true,
     );
 
     await _notificationsPlugin
@@ -61,8 +60,6 @@ class BackgroundLocationService {
   static void onStart(ServiceInstance service) async {
     DartPluginRegistrant.ensureInitialized();
 
-    // Configurar servicio como foreground para Android
-    // Usamos try-catch porque no podemos importar AndroidServiceInstance
     // sin causar conflicto de isolates
     try {
       // Intentar establecer como foreground service (solo Android)
@@ -136,7 +133,6 @@ class BackgroundLocationService {
     });
   }
 
-  /// Capturar ubicación y enviar al backend
   @pragma('vm:entry-point')
   static Future<void> _captureAndSendLocation(ServiceInstance service) async {
     try {
@@ -157,14 +153,11 @@ class BackgroundLocationService {
         return;
       }
 
-      // Capturar ubicación
       final position = await LocationService.getCurrentLocation();
 
-      // Obtener datos del usuario
       final userId = prefs.getInt('user_id');
       final token = prefs.getString('auth_token');
 
-      // Si no hay userId o token válido, detener el tracking y limpiar prefs
       if (userId == null || token == null) {
         print(
           '⚠️ Usuario no autenticado o token ausente, deteniendo tracking y limpiando prefs',
@@ -331,7 +324,7 @@ class BackgroundLocationService {
     try {
       service.invoke('stopService');
     } catch (_) {
-      // ignore
+      // ignoramos
     }
 
     final prefs = await SharedPreferences.getInstance();

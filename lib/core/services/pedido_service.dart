@@ -8,16 +8,14 @@ class PedidoService {
   static final String _baseUrl = ApiConfig.baseApiUrl;
   static const _storage = FlutterSecureStorage();
 
-  /// Obtener pedidos del motorizado (MOCK temporal)
+  /// Obtener pedidos del motorizado
   static Future<List<PedidoModel>> getPedidosMotorizado() async {
-    // TODO: Descomentar cuando el backend esté listo
-    /*
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('No token found');
 
       final response = await http.get(
-        Uri.parse('$_baseUrl/pedidos/mis-pedidos'),
+        Uri.parse('$_baseUrl/orders/mine'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -26,114 +24,55 @@ class PedidoService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        return data.map((p) => PedidoModel.fromJson(p)).toList();
+
+        List<PedidoModel> pedidos = data.map((orderJsonRaw) {
+          final Map<String, dynamic> orderJson = Map<String, dynamic>.from(
+            orderJsonRaw,
+          );
+
+          // Obtener array de paradas desde posibles keys: 'paradas' (español) o 'stops' (backend)
+          final rawStops =
+              (orderJson['paradas'] ?? orderJson['stops'] ?? [])
+                  as List<dynamic>;
+
+          // Transformar cada parada al formato que espera ParadaModel.fromJson
+          final normalizedStops = rawStops.map((sRaw) {
+            final Map<String, dynamic> s = Map<String, dynamic>.from(sRaw);
+            return {
+              'id_parada': s['id'] ?? s['id_parada'],
+              'pedido_id':
+                  s['order_id'] ??
+                  s['pedido_id'] ??
+                  orderJson['id'] ??
+                  orderJson['id_pedido'],
+              'tipo': s['type'] ?? s['tipo'],
+              'direccion': s['address'] ?? s['direccion'],
+              'orden': s['stop_order'] ?? s['orden'],
+              'foto_url': s['photo_url'] ?? s['foto_url'],
+              'gps_lat': s['latitude'] ?? s['gps_lat'],
+              'gps_lng': s['longitude'] ?? s['gps_lng'],
+              'fecha_hora': s['timestamp'] ?? s['fecha_hora'],
+              'confirmado': s['confirmed'] ?? s['confirmado'] ?? false,
+              'notas': s['notes'] ?? s['notas'],
+            };
+          }).toList();
+
+          // Colocamos/reescribimos la key `paradas` para que PedidoModel la consuma
+          orderJson['paradas'] = normalizedStops;
+          return PedidoModel.fromJson(orderJson);
+        }).toList();
+
+        return pedidos;
       } else {
-        throw Exception('Error al obtener pedidos: ${response.statusCode}');
+        print(
+          '❌ Error al obtener pedidos: ${response.statusCode} - ${response.body}',
+        );
+        return [];
       }
     } catch (e) {
       print('❌ Error en getPedidosMotorizado: $e');
       rethrow;
     }
-    */
-
-    // DATOS MOCK TEMPORALES
-    await Future.delayed(const Duration(milliseconds: 500)); // Simular latencia
-
-    return [
-      PedidoModel(
-        id: 1,
-        codigoPedido: 'PED-2025-001',
-        motorizadoId: 131,
-        titulo: 'Entrega Documentos Oficina A&B',
-        nombreRemitente: 'Almacén Central',
-        telefono: '987654321',
-        descripcion: 'Paquete con documentos y papelería',
-        instrucciones: 'Entregar en recepción del 3er piso',
-        estado: 'pendiente',
-        paradas: [
-          ParadaModel(
-            id: 1,
-            pedidoId: 1,
-            tipo: 'recojo',
-            direccion: 'Av. Javier Prado 123, San Isidro',
-            orden: 1,
-            confirmado: false,
-          ),
-          ParadaModel(
-            id: 2,
-            pedidoId: 1,
-            tipo: 'entrega',
-            direccion: 'Calle Las Begonias 456, San Isidro',
-            orden: 2,
-            confirmado: false,
-          ),
-        ],
-        fechaCreacion: DateTime.now().subtract(const Duration(hours: 2)),
-        fechaAsignacion: DateTime.now().subtract(const Duration(hours: 1)),
-      ),
-      PedidoModel(
-        id: 2,
-        codigoPedido: 'PED-2025-002',
-        motorizadoId: 131,
-        titulo: 'Recojo Documentos Cliente X',
-        nombreRemitente: 'Cliente X SAC',
-        telefono: '912345678',
-        descripcion: 'Documentos confidenciales',
-        instrucciones: 'Requiere firma del receptor',
-        estado: 'pendiente',
-        paradas: [
-          ParadaModel(
-            id: 3,
-            pedidoId: 2,
-            tipo: 'recojo',
-            direccion: 'Jr. Lampa 890, Cercado de Lima',
-            orden: 1,
-            confirmado: false,
-          ),
-          ParadaModel(
-            id: 4,
-            pedidoId: 2,
-            tipo: 'entrega',
-            direccion: 'Av. Arequipa 1200, Miraflores',
-            orden: 2,
-            confirmado: false,
-          ),
-        ],
-        fechaCreacion: DateTime.now().subtract(const Duration(hours: 3)),
-        fechaAsignacion: DateTime.now().subtract(const Duration(minutes: 30)),
-      ),
-      PedidoModel(
-        id: 3,
-        codigoPedido: 'PED-2025-003',
-        motorizadoId: 131,
-        titulo: 'Entrega Urgente Zona Financiera',
-        nombreRemitente: 'Sucursal Sur',
-        telefono: '998877665',
-        descripcion: 'Paquete urgente',
-        instrucciones: 'Entregar antes de las 6 PM',
-        estado: 'pendiente',
-        paradas: [
-          ParadaModel(
-            id: 5,
-            pedidoId: 3,
-            tipo: 'recojo',
-            direccion: 'Av. Benavides 2345, Surco',
-            orden: 1,
-            confirmado: false,
-          ),
-          ParadaModel(
-            id: 6,
-            pedidoId: 3,
-            tipo: 'entrega',
-            direccion: 'Paseo de la República 5678, La Victoria',
-            orden: 2,
-            confirmado: false,
-          ),
-        ],
-        fechaCreacion: DateTime.now().subtract(const Duration(minutes: 45)),
-        fechaAsignacion: DateTime.now().subtract(const Duration(minutes: 20)),
-      ),
-    ];
   }
 
   /// Confirmar parada (recojo o entrega) con foto (MOCK temporal)
@@ -221,7 +160,6 @@ class PedidoService {
       });
 
       final response = await http.post(
-        // Add trailing slash to match backend router (avoid 307 Temporary Redirect)
         Uri.parse('$_baseUrl/orders/'),
         headers: {
           'Authorization': 'Bearer $token',

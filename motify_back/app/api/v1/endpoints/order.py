@@ -34,6 +34,19 @@ async def create_order(
         raise HTTPException(status_code=400, detail=f"Datos inválidos o referencia ausente: {str(e)}")
 
 
+@router.get("/mine", response_model=List[Order])
+async def read_my_orders(
+    db: AsyncSession = Depends(get_async_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """Retorna los pedidos asignados al motorizado autenticado (courier)."""
+    # Si no hay user id, retorna vacio
+    courier_id = getattr(current_user, "id", None)
+    if courier_id is None:
+        return []
+    return await crud_order.get_by_courier(db, courier_id)
+
+
 @router.get("/", response_model=List[Order])
 async def read_orders(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_async_db)):
     return await crud_order.get_multi(db, skip=skip, limit=limit)

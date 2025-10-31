@@ -24,13 +24,20 @@ class CRUDOrder:
         result = await db.execute(select(Order).offset(skip).limit(limit))
         return result.scalars().all()
 
+    async def get_by_courier(self, db: AsyncSession, courier_id: int, skip: int = 0, limit: int = 100) -> List[Order]:
+        """Obtener pedidos asignados a un courier (motorizado)."""
+        result = await db.execute(
+            select(Order).where(Order.courier_id == courier_id).offset(skip).limit(limit)
+        )
+        return result.scalars().all()
+
     async def create(self, db: AsyncSession, obj_in: OrderCreate, extra: Optional[Dict[str, Any]] = None) -> Order:
         """
         Crea un Order en DB.
 
         - obj_in: campos que vienen del cliente (title, sender_name, sender_phone, description, instructions).
         - extra: diccionario opcional con campos server-side (por ejemplo 'courier_id', 'admin_id').
-                 Recomendado: que el endpoint pase 'courier_id' tomado del token aquí.
+        - recomendado: que el endpoint pase 'courier_id' tomado del token aquí.
         """
         data = obj_in.dict()
         if extra:

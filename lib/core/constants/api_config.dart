@@ -1,6 +1,9 @@
 class ApiConfig {
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
+    //Cable
+    // defaultValue: 'http://192.168.1.27:8000/api/v1',
+    // #Wifi
     defaultValue: 'http://192.168.31.166:8000/api/v1',
   );
 
