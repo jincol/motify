@@ -1,0 +1,673 @@
+{
+	"info": {
+		"_postman_id": "9d8dd411-476e-4ffe-a9ff-78cec1494e5d",
+		"name": "App_mobile",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "48547771",
+		"_collection_link": "https://dev-systemouts-413983.postman.co/workspace/system_outsourcing's-Workspace~19073e6f-36a2-4ae7-8b69-162b946e6266/collection/48547771-9d8dd411-476e-4ffe-a9ff-78cec1494e5d?action=share&source=collection_link&creator=48547771"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "use",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "richavo",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "12345678",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/api/v1/auth/token",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"auth",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Asistencia",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTg4MjkzMDMsInN1YiI6InNoYXdhbmRhIn0.FAjEhHGh9fwoiqyI9LqUQl6T1A-65oxIHtLto2HiTkY",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "// {\r\n//   \"type\": \"check-in\",\r\n//   \"photo_url\": \"https://ejemplo.com/foto.jpg\",\r\n//   \"gps_lat\": -12.0464,\r\n//   \"gps_lng\": -77.0428\r\n// }\r\n\r\n// SALIDA\r\n{\r\n  \"type\": \"check-out\",\r\n  \"photo_url\": \"https://ejemplo.com/foto_salida.jpg\",\r\n  \"gps_lat\": -12.0464,\r\n  \"gps_lng\": -77.0428\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/api/v1/attendance/check-in",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"attendance",
+						"check-in"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload_img",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/C:/Users/syste/Downloads/Gemini_Generated_Image_wpiw9swpiw9swpiw.png"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/v1/upload/photo",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"upload",
+						"photo"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create_user",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"username\": \"jin\",\r\n  \"email\": \"jin@example.com\",\r\n  \"full_name\": \"jin Colchado\",\r\n  \"role\": \"ADMIN_MOTORIZADO\",\r\n  \"password\": \"12345678\",\r\n  \"phone\": \"123456789\",\r\n  \"placa_unidad\" : \"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/v1/users/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"users",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Querie_atendance",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjEwNzc0MzEsInN1YiI6InJpY2hhdm8ifQ.8CYtcO0BRNIwUCMj3grXkcPEm--8g594jP_Vo3fg-F8",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"username\": \"jincol\",\r\n  \"email\": \"jincol@example.com\",\r\n  \"full_name\": \"Motorizado\",\r\n  \"role\": \"motorizado\",\r\n  \"password\": \"12345678\",\r\n  \"is_active\": true,\r\n  \"is_superuser\": false\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/v1/attendance/131",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"attendance",
+						"131"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Return_user",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjEwNzc0MzEsInN1YiI6InJpY2hhdm8ifQ.8CYtcO0BRNIwUCMj3grXkcPEm--8g594jP_Vo3fg-F8",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "shawanda",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "123456789",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/api/v1/users/me",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"me"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User_all",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjEwNzc0OTcsInN1YiI6ImppbiJ9.BQWPdwO5c-rjAShyIDnHGWjJmQoyPY4nEQTeS0BS91k",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "jin",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "123456789",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/api/v1/users/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get_assitance",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjA5ODY5NTEsInN1YiI6InJpY2hhdm8ifQ.JVApl40lNACkvYc-Uxxm2LtZfU0nOfJo4TbbF5r1ak0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "shawanda",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "123456789",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/api/v1/attendance/?user_id=129",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"attendance",
+						""
+					],
+					"query": [
+						{
+							"key": "user_id",
+							"value": "129"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Assistance_groupId",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjAwNDQ5NTMsInN1YiI6ImphY2ludGEifQ.fLwIKE0HU21aUNfjvYxTQT66wyPIU1DpDUtIDsfbKQA",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "shawanda",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "123456789",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/api/v1/attendance/by-group",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"attendance",
+						"by-group"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete_User",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTk1MjQxMzEsInN1YiI6ImppbiJ9.qDv6I7XWkAdGz0IUTKHuhoUtiUg6NzHq2LLKH1kQwIM",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "shawanda",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "123456789",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/api/v1/users/103",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"103"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update_user",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjAxMTkxNzEsInN1YiI6ImppbiJ9.l0KuzhBvajPuIcMTkNLC_1WXCykm5uO2STffYez_OJs",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"NuevoNombre\",\r\n  \"email\": \"nuevo@email.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/api/v1/users/120",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"120"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crea_Location",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjA2NTMwNzIsInN1YiI6ImpvaGFvIn0.VS40LBTk9wIii0NNCeE004666zHXktBNV00f1P4spN0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"user_id\": 132,\r\n  \"latitude\": -12.046450,\r\n  \"longitude\": -77.042850,\r\n  \"accuracy\": 8.5,\r\n  \"work_state\": \"EN_RUTA\",\r\n  \"speed\": 6.2,\r\n  \"heading\": 52.0\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://192.168.31.166:8000/api/v1/location/update",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"31",
+						"166"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"location",
+						"update"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get_location",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjA5OTE1ODcsInN1YiI6InJpY2hhdm8ifQ.C603sByO7IIkyTN24NHLwGooe1-Cj0TTLqS6Sn-1lgo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/api/v1/location/user/131",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"location",
+						"user",
+						"131"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "History_location",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjA2NTMwNzIsInN1YiI6ImpvaGFvIn0.VS40LBTk9wIii0NNCeE004666zHXktBNV00f1P4spN0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/api/v1/location/history/132?limit=10",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"location",
+						"history",
+						"132"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Refresh_token",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "use",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjE2OTAzODgsInN1YiI6InJpY2hhdm90ZSIsInR5cGUiOiJyZWZyZXNoIn0.iYFPnV_D_KigLfVCjLKxRpcq12Cl2jyuRI-7-31rE74\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/api/v1/auth/refresh",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"auth",
+						"refresh"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
