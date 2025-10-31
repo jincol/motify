@@ -12,6 +12,48 @@ from sqlalchemy.future import select
 
 router = APIRouter()
 
+
+@router.post("/register-first", response_model=user_schema.UserRead, status_code=status.HTTP_201_CREATED)
+async def register_first_user(
+    *,
+    db: AsyncSession = Depends(deps.get_async_db),
+    user_in: user_schema.UserCreate,
+) -> Any:
+    """
+    Crea el primer usuario (bootstrap).
+    Este endpoint SOLO funciona si no existe ningún usuario en la tabla `users`.
+    Está pensado para uso inicial; una vez creado el primer usuario devolverá 400.
+    """
+    # Comprobar si ya existe al menos un usuario
+    result = await db.execute(select(models.User).limit(1))
+    existing = result.scalar_one_or_none()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ya existe al menos un usuario; el endpoint de bootstrap está deshabilitado.",
+        )
+
+    # Validaciones básicas
+    if not user_in.password or len(user_in.password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La contraseña debe tener al menos 8 caracteres.",
+        )
+
+    # Forzar atributos de superusuario para el primer usuario
+    user_in.is_superuser = True
+    # Si no viene role definido, lo forzamos a SUPER_ADMIN
+    try:
+        # user_in.role es un Enum; asignamos si está vacío
+        if not getattr(user_in, "role", None):
+            user_in.role = user_schema.UserRole.SUPER_ADMIN
+    except Exception:
+        # si algo raro ocurre, forzamos el rol por string
+        user_in.role = user_schema.UserRole.SUPER_ADMIN
+
+    user = await crud.user.create_user(db=db, user_in=user_in)
+    return user
+
 @router.get("/me", response_model=user_schema.UserResponse) 
 async def read_users_me(
     current_user: User = Depends(deps.get_current_user) 
