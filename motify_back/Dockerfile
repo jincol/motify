@@ -26,7 +26,7 @@
 # # --reload es útil para desarrollo, para producción lo quitarías.
 
 
-#PRODUCCION
+#PRODUCCIO
 FROM python:3.12-slim
 
 WORKDIR /app
