@@ -59,7 +59,15 @@ class CRUDOrder:
         db.add(db_obj)
         await db.commit()
         await db.refresh(db_obj)
-        return db_obj
+        
+        # ✅ IMPORTANTE: Cargar las stops para que el schema pueda serializarlas
+        # Aunque el pedido recién creado no tiene stops, el schema Order espera este campo
+        result = await db.execute(
+            select(Order)
+            .options(selectinload(Order.stops))
+            .where(Order.id == db_obj.id)
+        )
+        return result.scalars().first()
 
     async def update(self, db: AsyncSession, db_obj: Order, obj_in: OrderUpdate) -> Order:
         obj_data = obj_in.dict(exclude_unset=True)
