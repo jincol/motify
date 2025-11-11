@@ -26,3 +26,14 @@ class StopOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class StopCreateAndConfirm(BaseModel):
+    order_id: int
+    type: str  
+    address: Optional[str]
+    latitude: Optional[float]
+    longitude: Optional[float]
+    photo_url: Optional[str]
+    timestamp: Optional[datetime]
+    notes: Optional[str] = None

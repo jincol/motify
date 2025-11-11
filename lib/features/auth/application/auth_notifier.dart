@@ -7,14 +7,99 @@ import 'dart:convert';
 import 'package:motify/core/services/auth_repository.dart';
 import 'dart:developer' as developer;
 import 'package:motify/core/constants/api_config.dart';
+import 'package:motify/core/services/background_location_service.dart';
 
 class AuthNotifier extends StateNotifier<AuthState> {
   static final String _baseUrl = '${ApiConfig.baseApiUrl}/auth/token';
   final _storage = const FlutterSecureStorage();
+  
   AuthNotifier() : super(AuthState(authStatus: AuthStatus.unknown)) {
-    Future.delayed(const Duration(seconds: 1), () {
+    _initializeAuth();
+  }
+
+  /// Inicializar autenticación al arrancar la app
+  Future<void> _initializeAuth() async {
+    try {
+      developer.log('🔐 Inicializando autenticación...', name: 'auth_notifier');
+      
+      // Verificar si hay un token guardado
+      final token = await _storage.read(key: 'token');
+      
+      if (token == null || token.isEmpty) {
+        developer.log('❌ No hay token guardado', name: 'auth_notifier');
+        state = AuthState(authStatus: AuthStatus.unauthenticated);
+        return;
+      }
+
+      developer.log('✅ Token encontrado, verificando sesión...', name: 'auth_notifier');
+      
+      // Verificar si el token es válido llamando a /users/me
+      final meResponse = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/users/me'),
+        headers: {'Authorization': 'Bearer $token'},
+      ).timeout(const Duration(seconds: 5));
+
+      if (meResponse.statusCode == 200) {
+        final meData = jsonDecode(meResponse.body);
+        final userId = meData['id'];
+        final role = meData['role'];
+        final workState = meData['work_state'] ?? 'INACTIVO';
+        
+        developer.log(
+          '✅ Sesión restaurada: userId=$userId, role=$role, workState=$workState',
+          name: 'auth_notifier',
+        );
+        
+        // Guardar en SharedPreferences
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setInt('user_id', userId);
+          await prefs.setString('work_state', workState);
+          await prefs.setString('auth_token', token);
+        } catch (e) {
+          developer.log('⚠️ Error guardando en prefs: $e', name: 'auth_notifier');
+        }
+        
+        // Restaurar estado de autenticación
+        state = AuthState(
+          authStatus: AuthStatus.authenticated,
+          role: role,
+          workState: workState,
+          token: token,
+          userId: userId,
+        );
+
+        // 🚀 IMPORTANTE: Reiniciar tracking GPS si la jornada está activa
+        if (workState == 'JORNADA_ACTIVA' || workState == 'EN_RUTA') {
+          developer.log(
+            '🚀 Reiniciando tracking GPS con estado: $workState',
+            name: 'auth_notifier',
+          );
+          
+          try {
+            await BackgroundLocationService.startTracking(
+              userId: userId,
+              workState: workState,
+              token: token,
+            );
+            developer.log('✅ Tracking GPS reiniciado exitosamente', name: 'auth_notifier');
+          } catch (e) {
+            developer.log('⚠️ Error reiniciando tracking GPS: $e', name: 'auth_notifier');
+          }
+        }
+      } else {
+        // Token inválido o expirado
+        developer.log(
+          '❌ Token inválido (${meResponse.statusCode})',
+          name: 'auth_notifier',
+        );
+        await _storage.delete(key: 'token');
+        state = AuthState(authStatus: AuthStatus.unauthenticated);
+      }
+    } catch (e) {
+      developer.log('❌ Error en _initializeAuth: $e', name: 'auth_notifier');
       state = AuthState(authStatus: AuthStatus.unauthenticated);
-    });
+    }
   }
   Future<void> login(String username, String password) async {
     state = AuthState(authStatus: AuthStatus.loading);
@@ -50,6 +135,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
           final role = meData['role'];
           final workState = meData['work_state'];
           final userId = meData['id'];
+          
+          // Guardar user_id en SharedPreferences para uso del mapa y otros servicios
+          try {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setInt('user_id', userId);
+            await prefs.setString('work_state', workState);
+          } catch (e) {
+            developer.log('Error guardando user_id en prefs: $e', name: 'auth_notifier');
+          }
+          
           state = AuthState(
             authStatus: AuthStatus.authenticated,
             role: role,
@@ -103,6 +198,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final userId = meData['id'];
       final role = meData['role'];
       final workState = meData['work_state'];
+      
+      // Guardar user_id en SharedPreferences
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('user_id', userId);
+        await prefs.setString('work_state', workState);
+      } catch (e) {
+        developer.log('Error guardando user_id en prefs: $e', name: 'auth_notifier');
+      }
+      
       state = AuthState(
         authStatus: AuthStatus.authenticated,
         role: role,

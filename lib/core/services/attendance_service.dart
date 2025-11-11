@@ -9,6 +9,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:motify/core/providers/location_tracking_provider.dart';
 import 'package:motify/core/constants/api_config.dart';
+import 'package:motify/features/auth/application/auth_notifier.dart';
 
 class AttendanceService {
   static final String _attendanceUrl =
@@ -97,6 +98,10 @@ class AttendanceService {
                 workState: 'JORNADA_ACTIVA',
                 token: token,
               );
+          
+          // 🚀 Actualizar el authState para que main.dart redirija correctamente
+          await ref.read(authNotifierProvider.notifier).fetchMe();
+          
           developer.log(
             'Tracking iniciado automáticamente',
             name: 'attendance_service',
@@ -106,6 +111,10 @@ class AttendanceService {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('work_state', 'INACTIVO');
           await ref.read(locationTrackingProvider.notifier).stopTracking();
+          
+          // 🚀 Actualizar el authState
+          await ref.read(authNotifierProvider.notifier).fetchMe();
+          
           developer.log(
             'Tracking detenido automáticamente',
             name: 'attendance_service',

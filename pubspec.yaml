@@ -19,6 +19,7 @@ dependencies:
   flutter_secure_storage: ^9.0.0
   font_awesome_flutter: ^10.1.0
   geolocator: ^10.0.0
+  geocoding: ^3.0.0
   image_picker: ^1.0.0
   permission_handler: ^11.0.1
   web_socket_channel: ^2.4.0

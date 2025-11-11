@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import update, delete
+from sqlalchemy.orm import selectinload
 from app.db.models.order import Order
 from app.schemas.order import OrderCreate, OrderUpdate
 from typing import List, Optional, Dict, Any
@@ -17,7 +18,11 @@ def _generate_order_code() -> str:
 
 class CRUDOrder:
     async def get(self, db: AsyncSession, order_id: int) -> Optional[Order]:
-        result = await db.execute(select(Order).where(Order.id == order_id))
+        result = await db.execute(
+            select(Order)
+            .options(selectinload(Order.stops))  # Cargar las paradas relacionadas
+            .where(Order.id == order_id)
+        )
         return result.scalars().first()
 
     async def get_multi(self, db: AsyncSession, skip: int = 0, limit: int = 100) -> List[Order]:
@@ -25,9 +30,13 @@ class CRUDOrder:
         return result.scalars().all()
 
     async def get_by_courier(self, db: AsyncSession, courier_id: int, skip: int = 0, limit: int = 100) -> List[Order]:
-        """Obtener pedidos asignados a un courier (motorizado)."""
+        """Obtener pedidos asignados a un courier (motorizado) con sus paradas."""
         result = await db.execute(
-            select(Order).where(Order.courier_id == courier_id).offset(skip).limit(limit)
+            select(Order)
+            .options(selectinload(Order.stops))  # Cargar las paradas relacionadas
+            .where(Order.courier_id == courier_id)
+            .offset(skip)
+            .limit(limit)
         )
         return result.scalars().all()
 

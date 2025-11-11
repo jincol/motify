@@ -8,6 +8,60 @@ class PedidoService {
   static final String _baseUrl = ApiConfig.baseApiUrl;
   static const _storage = FlutterSecureStorage();
 
+
+  static Future<ParadaModel?> crearYConfirmarParada({
+      required int pedidoId,
+      required String tipo,
+      required String direccion,
+      required String fotoUrl,
+      required double gpsLat,
+      required double gpsLng,
+      required String fechaHora,
+      String? notas,
+    }) async {
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('No token found');
+
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseApiUrl}/stops/'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'order_id': pedidoId,
+          'type': tipo,
+          'address': direccion,
+          'photo_url': fotoUrl,
+          'latitude': gpsLat,
+          'longitude': gpsLng,
+          'timestamp': fechaHora,
+          'notes': notas,
+        }),
+      );
+      if (response.statusCode == 201) {
+        final Map<String, dynamic> rawResponse = jsonDecode(response.body);
+        // Normalizar campos del backend (inglés) al formato del modelo (español)
+        final normalizedResponse = {
+          'id_parada': rawResponse['id'],
+          'pedido_id': rawResponse['order_id'],
+          'tipo': rawResponse['type'],
+          'direccion': rawResponse['address'],
+          'orden': rawResponse['stop_order'],
+          'foto_url': rawResponse['photo_url'],
+          'gps_lat': rawResponse['latitude'],
+          'gps_lng': rawResponse['longitude'],
+          'fecha_hora': rawResponse['timestamp'],
+          'confirmado': rawResponse['confirmed'] ?? true,
+          'notas': rawResponse['notes'],
+        };
+        return ParadaModel.fromJson(normalizedResponse);
+      } else {
+        print('❌ Error al crear parada: ${response.statusCode} - ${response.body}');
+        return null;
+      }
+    }
+
   /// Obtener pedidos del motorizado
   static Future<List<PedidoModel>> getPedidosMotorizado() async {
     try {
@@ -24,6 +78,10 @@ class PedidoService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
+        
+        // DEBUG: Imprimir la respuesta del backend
+        print('🔍 DEBUG: Pedidos recibidos del backend:');
+        print(jsonEncode(data));
 
         List<PedidoModel> pedidos = data.map((orderJsonRaw) {
           final Map<String, dynamic> orderJson = Map<String, dynamic>.from(
@@ -86,26 +144,22 @@ class PedidoService {
     double? latEntrega, // Nuevo: latitud de entrega
     double? lngEntrega, // Nuevo: longitud de entrega
   }) async {
-    // TODO: Descomentar cuando el backend esté listo
-    /*
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('No token found');
 
       final response = await http.post(
-            Uri.parse('${ApiConfig.baseApiUrl}/paradas/$paradaId/confirmar'),
+            // Uri.parse('${ApiConfig.baseApiUrl}/paradas/$paradaId/confirmar'),
+            Uri.parse('${ApiConfig.baseApiUrl}/stops/$paradaId/confirm'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'foto_url': fotoUrl,
-          'gps_lat': lat,
-          'gps_lng': lng,
-          'notas': notas,
-          'direccion_entrega': direccionEntrega,
-          'lat_entrega': latEntrega,
-          'lng_entrega': lngEntrega,
+          'photo_url': fotoUrl,
+          'latitude': lat,
+          'longitude': lng,
+          'notes': notas,
         }),
       );
 
@@ -113,26 +167,14 @@ class PedidoService {
         print('✅ Parada $paradaId confirmada');
         return true;
       } else {
-        print('❌ Error al confirmar parada: ${response.statusCode}');
+        print('❌ Error al confirmar parada: ${response.statusCode} - ${response.body}');
         return false;
       }
     } catch (e) {
       print('❌ Error en confirmarParada: $e');
       return false;
     }
-    */
-
-    // MOCK TEMPORAL - Simular confirmación exitosa
-    await Future.delayed(const Duration(seconds: 1));
-    print('✅ [MOCK] Parada $paradaId confirmada');
-    print('   Foto: $fotoUrl');
-    print('   GPS: $lat, $lng');
-    if (notas != null) print('   Notas: $notas');
-    if (direccionEntrega != null) {
-      print('   📍 Dirección de entrega: $direccionEntrega');
-      print('   📍 Coordenadas entrega: $latEntrega, $lngEntrega');
-    }
-    return true;
+    
   }
 
   /// Crear nuevo pedido
@@ -156,7 +198,6 @@ class PedidoService {
         if (telefono != null) 'sender_phone': telefono,
         if (descripcion != null) 'description': descripcion,
         if (instrucciones != null) 'instructions': instrucciones,
-        // NOTA: courier_id, admin_id y code no se envían desde el frontend
       });
 
       final response = await http.post(

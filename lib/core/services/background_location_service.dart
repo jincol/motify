@@ -109,7 +109,8 @@ class BackgroundLocationService {
     await Future.delayed(const Duration(seconds: 2));
 
     // Loop principal de captura de GPS
-    Timer.periodic(const Duration(seconds: 10), (timer) async {
+    // Verificar cada 5 segundos para tener precisión en los intervalos
+    Timer.periodic(const Duration(seconds: 5), (timer) async {
       try {
         // Verificar que hay datos de usuario antes de capturar
         final prefs = await SharedPreferences.getInstance();
@@ -143,6 +144,14 @@ class BackgroundLocationService {
 
       final workState = prefs.getString('work_state') ?? 'INACTIVO';
 
+      // Debug logs
+      final timeSinceLastSent = now - lastSentTimestamp;
+      print('⏱️ Verificando envío GPS:');
+      print('   Estado: $workState');
+      print('   Intervalo configurado: ${intervalSeconds}s');
+      print('   Tiempo desde último envío: ${timeSinceLastSent}s');
+      print('   ¿Debe enviar?: ${timeSinceLastSent >= intervalSeconds}');
+
       if (workState == 'INACTIVO') {
         print('⏸️ Estado INACTIVO, deteniendo tracking');
         await BackgroundLocationService.stopTracking();
@@ -150,10 +159,13 @@ class BackgroundLocationService {
       }
 
       if (now - lastSentTimestamp < intervalSeconds) {
+        print('⏳ Aún no es tiempo de enviar (faltan ${intervalSeconds - timeSinceLastSent}s)');
         return;
       }
 
+      print('📍 Capturando ubicación GPS...');
       final position = await LocationService.getCurrentLocation();
+      print('✅ GPS capturado: ${position.latitude}, ${position.longitude}');
 
       final userId = prefs.getInt('user_id');
       final token = prefs.getString('auth_token');
@@ -182,6 +194,7 @@ class BackgroundLocationService {
         return;
       }
 
+      print('📤 Enviando ubicación al backend...');
       // Enviar al backend
       final success = await LocationRepository.sendLocation(
         userId: userId,
@@ -205,14 +218,15 @@ class BackgroundLocationService {
         );
 
         print(
-          '✅ Ubicación enviada: ${position.latitude}, ${position.longitude}',
+          '✅ Ubicación enviada exitosamente: ${position.latitude}, ${position.longitude}',
         );
       } else {
         // En caso de fallo (ej. 401), no actualizamos last_location_sent
         print('❌ Error al enviar ubicación (sendLocation devolvió false)');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('❌ Error en captura GPS: $e');
+      print('Stack trace: $stackTrace');
     }
   }
 
@@ -283,15 +297,23 @@ class BackgroundLocationService {
     int intervalSeconds;
     switch (workState) {
       case 'EN_RUTA':
-        intervalSeconds = 30;
+        intervalSeconds = 30; // 30 segundos
         break;
       case 'JORNADA_ACTIVA':
-        intervalSeconds = 25;
+        intervalSeconds = 300; // 5 minutos
         break;
       default:
         intervalSeconds = 600; // 10 minutos
     }
     await prefs.setInt('tracking_interval_seconds', intervalSeconds);
+
+    // IMPORTANTE: Resetear el timestamp para que envíe inmediatamente
+    await prefs.setInt('last_location_sent', 0);
+
+    print('🚀 Tracking configurado:');
+    print('   UserId: $userId');
+    print('   Estado: $workState');
+    print('   Intervalo: ${intervalSeconds}s');
 
     // Iniciar servicio
     final isRunning = await service.isRunning();
@@ -313,7 +335,7 @@ class BackgroundLocationService {
       'timestamp': DateTime.now().millisecondsSinceEpoch,
     });
 
-    print('🚀 Tracking iniciado: $workState cada ${intervalSeconds}s');
+    print('✅ Tracking iniciado: $workState cada ${intervalSeconds}s');
   }
 
   /// Detener tracking
@@ -354,18 +376,27 @@ class BackgroundLocationService {
     int intervalSeconds;
     switch (workState) {
       case 'EN_RUTA':
-        intervalSeconds = 30;
+        intervalSeconds = 30; // 30 segundos
         break;
       case 'JORNADA_ACTIVA':
-        intervalSeconds = 25;
+        intervalSeconds = 300; // 5 minutos
         break;
       default:
         intervalSeconds = 600;
     }
     await prefs.setInt('tracking_interval_seconds', intervalSeconds);
 
+    // IMPORTANTE: Resetear timestamp para que envíe inmediatamente con la nueva frecuencia
+    await prefs.setInt('last_location_sent', 0);
+
     final service = FlutterBackgroundService();
     service.invoke('updateFrequency', {'seconds': intervalSeconds});
+
+    // Actualizar notificación
+    service.invoke('updateNotification', {
+      'workState': workState,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    });
 
     print('🔄 Frecuencia actualizada: $workState cada ${intervalSeconds}s');
   }

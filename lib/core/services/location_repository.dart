@@ -53,7 +53,7 @@ class LocationRepository {
             if (newToken != null) token = newToken;
           }
         } catch (e) {
-          // si falla la decodificación, no bloqueamos el envío
+          // ignore
         }
       } catch (e) {
         // ignore
@@ -130,6 +130,45 @@ class LocationRepository {
     } catch (e) {
       print('❌ Error al enviar ubicación: $e');
       return false;
+    }
+  }
+
+  /// Obtener historial de ubicaciones de un usuario
+  static Future<List<Map<String, dynamic>>> getLocationHistory({
+    required int userId,
+    required String token,
+    DateTime? startDate,
+    DateTime? endDate,
+    int limit = 1000,
+  }) async {
+    try {
+      final queryParams = {
+        'limit': limit.toString(),
+        if (startDate != null) 'start_date': startDate.toIso8601String(),
+        if (endDate != null) 'end_date': endDate.toIso8601String(),
+      };
+
+      final uri = Uri.parse('$_baseUrl/location/history/$userId')
+          .replace(queryParameters: queryParams);
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((item) => item as Map<String, dynamic>).toList();
+      } else {
+        print('❌ Error al obtener historial: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('❌ Error al obtener historial de ubicaciones: $e');
+      return [];
     }
   }
 }

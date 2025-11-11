@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from enum import Enum
 
@@ -48,4 +48,11 @@ class OrderInDBBase(BaseModel):
         orm_mode = True
 
 class Order(OrderInDBBase):
-    pass
+    stops: List['StopOut'] = []
+    
+    class Config:
+        orm_mode = True
+
+# Import circular fix - importar después de la definición de Order
+from app.schemas.stop import StopOut
+Order.model_rebuild()
