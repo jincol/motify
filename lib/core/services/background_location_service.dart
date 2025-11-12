@@ -88,6 +88,13 @@ class BackgroundLocationService {
     service.on('updateFrequency').listen((event) async {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('tracking_interval_seconds', event?['seconds'] ?? 300);
+      
+      // También actualizar work_state si viene en el evento
+      final workState = event?['workState'];
+      if (workState != null) {
+        await prefs.setString('work_state', workState);
+        print('🔄 Service background actualizó work_state: $workState');
+      }
     });
 
     service.on('updateNotification').listen((event) async {
@@ -390,7 +397,10 @@ class BackgroundLocationService {
     await prefs.setInt('last_location_sent', 0);
 
     final service = FlutterBackgroundService();
-    service.invoke('updateFrequency', {'seconds': intervalSeconds});
+    service.invoke('updateFrequency', {
+      'seconds': intervalSeconds,
+      'workState': workState,  // 🚀 Enviar también el workState
+    });
 
     // Actualizar notificación
     service.invoke('updateNotification', {
@@ -399,5 +409,30 @@ class BackgroundLocationService {
     });
 
     print('🔄 Frecuencia actualizada: $workState cada ${intervalSeconds}s');
+    
+    // 🚀 NUEVO: Enviar ubicación inmediatamente con el nuevo work_state
+    // para garantizar que el backend reciba el cambio de estado
+    try {
+      print('📍 Enviando ubicación inmediata con nuevo work_state...');
+      final position = await LocationService.getCurrentLocation();
+      final userId = prefs.getInt('user_id');
+      final token = prefs.getString('auth_token');
+      
+      if (userId != null && token != null) {
+        await LocationRepository.sendLocation(
+          userId: userId,
+          latitude: position.latitude,
+          longitude: position.longitude,
+          accuracy: position.accuracy,
+          workState: workState,
+          speed: position.speed,
+          heading: position.heading,
+          token: token,
+        );
+        print('✅ Ubicación enviada con nuevo work_state: $workState');
+      }
+    } catch (e) {
+      print('⚠️ Error enviando ubicación inmediata: $e');
+    }
   }
 }
