@@ -208,3 +208,32 @@ async def update_user_endpoint(
             status_code=400,
             detail="El nombre de usuario o correo ya está en uso."
         )
+
+# 🚨 ENDPOINT TEMPORAL DE DEBUG - ELIMINAR EN PRODUCCIÓN
+@router.get("/debug-list-all")
+async def debug_list_users(
+    db: AsyncSession = Depends(deps.get_async_db),
+    secret: str = "DEBUG2025"
+):
+    """
+    Lista todos los usuarios (solo username, email, role) para debugging.
+    ⚠️ ELIMINAR ESTE ENDPOINT ANTES DE PRODUCCIÓN FINAL
+    """
+    if secret != "DEBUG2025":
+        raise HTTPException(status_code=403, detail="Forbidden")
+    
+    result = await db.execute(select(models.User))
+    users = result.scalars().all()
+    
+    return [
+        {
+            "id": u.id,
+            "username": u.username,
+            "email": u.email,
+            "full_name": u.full_name,
+            "role": u.role.value if hasattr(u.role, 'value') else str(u.role),
+            "is_active": u.is_active,
+            "work_state": u.work_state
+        }
+        for u in users
+    ]
