@@ -40,6 +40,20 @@ class CRUDOrder:
         )
         return result.scalars().all()
 
+    async def get_active_order_by_motorizado(self, db: AsyncSession, courier_id: int) -> Optional[Order]:
+        """
+        Obtiene el pedido activo (pending o in_process) de un motorizado
+        """
+        result = await db.execute(
+            select(Order)
+            .options(selectinload(Order.stops))
+            .where(Order.courier_id == courier_id)
+            .where(Order.status.in_(['pending', 'in_process']))  # ✅ Corregido: in_process no in_progress
+            .order_by(Order.created_at.desc())
+            .limit(1)
+        )
+        return result.scalars().first()
+
     async def create(self, db: AsyncSession, obj_in: OrderCreate, extra: Optional[Dict[str, Any]] = None) -> Order:
         """
         Crea un Order en DB.

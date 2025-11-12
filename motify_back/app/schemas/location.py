@@ -12,6 +12,7 @@ class LocationUpdate(BaseModel):
     longitude: float = Field(..., ge=-180, le=180, description="Longitud GPS")
     accuracy: Optional[float] = Field(None, description="Precisión del GPS en metros")
     work_state: Optional[str] = Field(None, description="Estado laboral del motorizado")
+    pedido_id: Optional[int] = Field(None, description="ID del pedido activo (si está EN_RUTA)")
     speed: Optional[float] = Field(None, description="Velocidad en m/s")
     heading: Optional[float] = Field(None, ge=0, le=360, description="Dirección en grados")
     timestamp: Optional[datetime] = Field(None, description="Hora de captura GPS (ISO 8601)")
@@ -24,6 +25,7 @@ class LocationUpdate(BaseModel):
                 "longitude": -77.042793,
                 "accuracy": 10.5,
                 "work_state": "EN_RUTA",
+                "pedido_id": 42,
                 "speed": 5.2,
                 "heading": 45.0,
                 "timestamp": "2025-10-16T10:30:00Z"
@@ -42,6 +44,7 @@ class LocationResponse(BaseModel):
     accuracy: Optional[float]
     timestamp: datetime
     work_state: Optional[str]
+    pedido_id: Optional[int]
     speed: Optional[float]
     heading: Optional[float]
     created_at: datetime
@@ -65,6 +68,7 @@ class UserLocationDetail(BaseModel):
     longitude: float
     accuracy: Optional[float]
     timestamp: datetime
+    pedido_id: Optional[int]
     speed: Optional[float]
     heading: Optional[float]
 

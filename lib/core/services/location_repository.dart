@@ -17,6 +17,7 @@ class LocationRepository {
     required double speed,
     required double heading,
     required String token,
+    int? pedidoId,  // ✅ NUEVO: ID del pedido activo (opcional)
   }) async {
     try {
       // Proactive refresh: si el token expira en menos de 60s, intentar refresh antes de enviar
@@ -76,6 +77,7 @@ class LocationRepository {
               'work_state': workState,
               'speed': speed,
               'heading': heading,
+              if (pedidoId != null) 'pedido_id': pedidoId,  // ✅ Incluir solo si existe
             }),
           )
           .timeout(const Duration(seconds: 10));
@@ -104,6 +106,7 @@ class LocationRepository {
                     'work_state': workState,
                     'speed': speed,
                     'heading': heading,
+                    if (pedidoId != null) 'pedido_id': pedidoId,  // ✅ Incluir en retry
                   }),
                 )
                 .timeout(const Duration(seconds: 10));
@@ -168,6 +171,35 @@ class LocationRepository {
       }
     } catch (e) {
       print('❌ Error al obtener historial de ubicaciones: $e');
+      return [];
+    }
+  }
+
+  /// Obtener ruta activa del pedido en curso
+  static Future<List<Map<String, dynamic>>> getActiveRoute({
+    required int userId,
+    required String token,
+  }) async {
+    try {
+      final uri = Uri.parse('$_baseUrl/location/active-route/$userId');
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((item) => item as Map<String, dynamic>).toList();
+      } else {
+        print('❌ Error al obtener ruta activa: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('❌ Error al obtener ruta activa: $e');
       return [];
     }
   }

@@ -41,7 +41,8 @@ class MotifyApp extends ConsumerWidget {
     Widget homeWidget;
     if (authState.authStatus == AuthStatus.authenticated) {
       if (authState.role?.toLowerCase() == 'motorizado') {
-        if (authState.workState == 'JORNADA_ACTIVA') {
+        // ✅ Permitir acceso si está en JORNADA_ACTIVA o EN_RUTA
+        if (authState.workState == 'JORNADA_ACTIVA' || authState.workState == 'EN_RUTA') {
           homeWidget = const MotorizadoDashboardScreen();
         } else {
           homeWidget = const JornadaControlScreen();

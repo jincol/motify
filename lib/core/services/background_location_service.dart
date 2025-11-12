@@ -202,6 +202,14 @@ class BackgroundLocationService {
       }
 
       print('📤 Enviando ubicación al backend...');
+      
+      // Obtener pedido_id si existe (solo relevante cuando work_state es EN_RUTA)
+      int? pedidoId;
+      if (workState == 'EN_RUTA') {
+        pedidoId = prefs.getInt('current_pedido_id');
+        print('   📦 Pedido activo ID: $pedidoId');
+      }
+      
       // Enviar al backend
       final success = await LocationRepository.sendLocation(
         userId: userId,
@@ -212,6 +220,7 @@ class BackgroundLocationService {
         speed: position.speed,
         heading: position.heading,
         token: token,
+        pedidoId: pedidoId,  // ✅ Incluir pedido_id si existe
       );
 
       if (success) {
@@ -418,6 +427,13 @@ class BackgroundLocationService {
       final userId = prefs.getInt('user_id');
       final token = prefs.getString('auth_token');
       
+      // Obtener pedido_id si el estado es EN_RUTA
+      int? pedidoId;
+      if (workState == 'EN_RUTA') {
+        pedidoId = prefs.getInt('current_pedido_id');
+        print('   📦 Pedido activo ID (envío inmediato): $pedidoId');
+      }
+      
       if (userId != null && token != null) {
         await LocationRepository.sendLocation(
           userId: userId,
@@ -428,6 +444,7 @@ class BackgroundLocationService {
           speed: position.speed,
           heading: position.heading,
           token: token,
+          pedidoId: pedidoId,  // ✅ Incluir pedido_id
         );
         print('✅ Ubicación enviada con nuevo work_state: $workState');
       }

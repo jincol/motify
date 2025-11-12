@@ -201,6 +201,72 @@ async def get_user_location_history(
     
     return history
 
+@router.get("/active-route/{user_id}", response_model=List[LocationResponse])
+async def get_active_route_locations(
+    user_id: int,
+    db: AsyncSession = Depends(get_async_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    **Obtiene las ubicaciones GPS del pedido activo de un motorizado.**
+    
+    **Uso típico:** Vista de mapa "Mi Ruta" en la app del motorizado
+    
+    **Validaciones:**
+    - Motorizado solo puede ver su propia ruta activa
+    - Admin puede ver rutas activas de su grupo
+    - Super Admin puede ver cualquier ruta
+    
+    **Retorna:**
+    - Lista vacía si no hay pedido activo o no hay ubicaciones
+    - Lista de ubicaciones ordenadas cronológicamente para dibujar la ruta
+    """
+    # Validación: Motorizado solo puede ver su ruta
+    if current_user.role == UserRole.MOTORIZADO:
+        if user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No puedes ver la ruta de otro usuario"
+            )
+    
+    # Validación: Admin solo puede ver rutas de su grupo
+    elif current_user.role == UserRole.ADMIN_MOTORIZADO:
+        target_user = await get_user_by_id(db, user_id)
+        
+        if not target_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Usuario {user_id} no encontrado"
+            )
+        
+        if target_user.grupo_id != current_user.grupo_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No puedes ver rutas de usuarios fuera de tu grupo"
+            )
+    
+    # Obtener el pedido activo del usuario (EN_RUTA o ASIGNADO)
+    from app.crud.crud_order import crud_order
+    active_order = await crud_order.get_active_order_by_motorizado(db, user_id)
+    
+    if not active_order:
+        # No hay pedido activo, retornar lista vacía
+        print(f'ℹ️ No hay pedido activo para usuario {user_id}')
+        return []
+    
+    print(f'✅ Pedido activo encontrado: ID={active_order.id}, status={active_order.status}')
+    
+    # Obtener ubicaciones del pedido activo
+    locations = await location_crud.get_locations_by_order(
+        db=db,
+        user_id=user_id,
+        pedido_id=active_order.id
+    )
+    
+    print(f'📍 Ubicaciones del pedido {active_order.id}: {len(locations)}')
+    
+    return locations
+
 @router.post("/update-test", response_model=LocationResponse, status_code=status.HTTP_201_CREATED)
 async def update_location_test(
     location_in: LocationUpdate,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:motify/core/models/pedido_model.dart';
 import 'package:motify/core/providers/pedido_provider.dart';
 import 'package:motify/core/providers/location_tracking_provider.dart';
@@ -84,7 +85,11 @@ class _PedidoDetailScreenState extends ConsumerState<PedidoDetailScreen> {
 
       // 7. Actualizar estado GPS según tipo de parada
       if (tipo == 'pickup') {
-        // Primer recojo → cambiar a EN_RUTA
+        // Primer recojo → cambiar a EN_RUTA y GUARDAR pedido_id
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('current_pedido_id', pedido.id);
+        print('✅ Guardado current_pedido_id: ${pedido.id}');
+        
         await ref
             .read(locationTrackingProvider.notifier)
             .updateWorkState('EN_RUTA');
@@ -124,8 +129,13 @@ class _PedidoDetailScreenState extends ConsumerState<PedidoDetailScreen> {
           final hayOtrosPedidosActivos = pedidosActivos.isNotEmpty;
 
           if (!hayOtrosPedidosActivos) {
-            // Ya no hay pedidos activos → volver a JORNADA_ACTIVA
+            // Ya no hay pedidos activos → volver a JORNADA_ACTIVA y LIMPIAR pedido_id
             print('✅ Cambiando a JORNADA_ACTIVA (no hay más pedidos activos)');
+            
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.remove('current_pedido_id');
+            print('✅ Limpiado current_pedido_id');
+            
             await ref
                 .read(locationTrackingProvider.notifier)
                 .updateWorkState('JORNADA_ACTIVA');
@@ -138,7 +148,14 @@ class _PedidoDetailScreenState extends ConsumerState<PedidoDetailScreen> {
               ),
             );
           } else {
+            // Hay otros pedidos activos → actualizar al siguiente pedido activo
             print('⚠️ Manteniendo EN_RUTA (hay ${pedidosActivos.length} pedidos activos)');
+            
+            final prefs = await SharedPreferences.getInstance();
+            final siguientePedidoId = pedidosActivos.first.id;
+            await prefs.setInt('current_pedido_id', siguientePedidoId);
+            print('✅ Actualizado current_pedido_id a: $siguientePedidoId');
+            
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('✅ Pedido completado\n📦 Aún tienes ${pedidosActivos.length} pedido(s) activo(s)'),

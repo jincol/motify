@@ -13,7 +13,7 @@ class Settings(BaseSettings):# Define tus variables de entorno/configuración aq
     DATABASE_URL: str
     SECRET_KEY: str
     ALGORITHM: str = "HS256" # Puedes tener valores por defecto
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30 # Valor por defecto
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 días (24h * 7 = 168h = 10080 min)
 
     model_config = SettingsConfigDict(
         env_file=".env",              

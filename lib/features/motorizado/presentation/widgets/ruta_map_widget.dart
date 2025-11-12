@@ -96,42 +96,33 @@ class _RutaMapWidgetState extends State<RutaMapWidget> {
         return;
       }
 
-      print('🔍 Obteniendo historial...');
-      final locations = await LocationRepository.getLocationHistory(
+      print('🔍 Obteniendo ruta activa del pedido...');
+      // ✅ USAR NUEVO ENDPOINT: Solo ubicaciones del pedido activo
+      final locations = await LocationRepository.getActiveRoute(
         userId: userId,
         token: token,
       );
-      print('📍 Ubicaciones recibidas: ${locations.length}');
+      print('📍 Ubicaciones de ruta activa: ${locations.length}');
 
-      final enRutaLocations = locations.where((loc) {
-        return loc['work_state'] == 'EN_RUTA';
-      }).toList();
-
-      print('🗺️ Ubicaciones EN_RUTA: ${enRutaLocations.length}');
-
-      if (enRutaLocations.isEmpty) {
+      if (locations.isEmpty) {
+        print('ℹ️ No hay ruta activa, mostrando ubicación actual');
         await _showCurrentLocationOnly();
         return;
       }
 
-      enRutaLocations.sort((a, b) {
-        final timestampA = DateTime.parse(a['timestamp'] as String);
-        final timestampB = DateTime.parse(b['timestamp'] as String);
-        return timestampA.compareTo(timestampB);
-      });
-
       final newMarkers = <Marker>{};
       final polylinePoints = <LatLng>[];
 
-      for (var i = 0; i < enRutaLocations.length; i++) {
-        final loc = enRutaLocations[i];
+      // ✅ Las ubicaciones ya vienen ordenadas cronológicamente del backend
+      for (var i = 0; i < locations.length; i++) {
+        final loc = locations[i];
         final lat = loc['latitude'] as double;
         final lng = loc['longitude'] as double;
         final position = LatLng(lat, lng);
 
         polylinePoints.add(position);
 
-        if (i == 0 || i == enRutaLocations.length - 1) {
+        if (i == 0 || i == locations.length - 1) {
           newMarkers.add(
             Marker(
               markerId: MarkerId('point_$i'),
@@ -168,7 +159,7 @@ class _RutaMapWidgetState extends State<RutaMapWidget> {
           _polylines.add(polyline);
           _isLoading = false;
           _estadoRuta =
-              'En ruta - ${enRutaLocations.length} puntos (${_calculateDistance(polylinePoints).toStringAsFixed(2)} km)';
+              'Pedido activo - ${locations.length} puntos (${_calculateDistance(polylinePoints).toStringAsFixed(2)} km)';
         });
       }
 

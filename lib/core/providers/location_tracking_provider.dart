@@ -74,17 +74,20 @@ class LocationTrackingNotifier extends StateNotifier<LocationTrackingState> {
 
   /// Actualizar work_state (cambia la frecuencia automáticamente)
   Future<void> updateWorkState(String newWorkState) async {
-    if (!state.isTracking) return;
-
+    // ✅ PERMITIR actualizar el work_state aunque isTracking sea false
+    // porque el servicio de background puede estar corriendo independientemente
     try {
+      // Actualizar el servicio de background
       await BackgroundLocationService.updateTrackingFrequency(newWorkState);
 
+      // Actualizar el estado del provider
       state = state.copyWith(
         workState: newWorkState,
         lastUpdate: DateTime.now(),
+        isTracking: newWorkState != 'INACTIVO', // Activar tracking si no está inactivo
       );
 
-      print('🔄 Work state actualizado: $newWorkState');
+      print('🔄 Work state actualizado: $newWorkState (isTracking: ${state.isTracking})');
     } catch (e) {
       print('❌ Error al actualizar work state: $e');
       rethrow;

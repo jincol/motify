@@ -152,3 +152,32 @@ async def get_location_history(
     
     result = await db.execute(query)
     return result.scalars().all()
+
+
+async def get_locations_by_order(
+    db: AsyncSession,
+    user_id: int,
+    pedido_id: int
+) -> List[UserLocation]:
+    """
+    Obtiene todas las ubicaciones GPS de un motorizado para un pedido específico.
+    
+    Args:
+        db: Sesión async de la base de datos
+        user_id: ID del usuario motorizado
+        pedido_id: ID del pedido
+        
+    Returns:
+        List[UserLocation]: Lista de ubicaciones del pedido ordenadas por timestamp ASC
+    """
+    result = await db.execute(
+        select(UserLocation)
+        .filter(
+            and_(
+                UserLocation.user_id == user_id,
+                UserLocation.pedido_id == pedido_id
+            )
+        )
+        .order_by(UserLocation.timestamp.asc())  # Orden cronológico para dibujar la ruta
+    )
+    return result.scalars().all()
