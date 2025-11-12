@@ -247,23 +247,29 @@ async def get_active_route_locations(
     
     # Obtener el pedido activo del usuario (EN_RUTA o ASIGNADO)
     from app.crud.crud_order import crud_order
+    
+    print(f'🔍 Buscando pedido activo para usuario {user_id}...')
     active_order = await crud_order.get_active_order_by_motorizado(db, user_id)
     
     if not active_order:
         # No hay pedido activo, retornar lista vacía
-        print(f'ℹ️ No hay pedido activo para usuario {user_id}')
+        print(f'❌ No hay pedido activo para usuario {user_id}')
         return []
     
-    print(f'✅ Pedido activo encontrado: ID={active_order.id}, status={active_order.status}')
+    print(f'✅ Pedido activo encontrado: ID={active_order.id}, status={active_order.status}, courier_id={active_order.courier_id}')
     
     # Obtener ubicaciones del pedido activo
+    print(f'📍 Consultando ubicaciones: user_id={user_id}, pedido_id={active_order.id}')
     locations = await location_crud.get_locations_by_order(
         db=db,
         user_id=user_id,
         pedido_id=active_order.id
     )
     
-    print(f'📍 Ubicaciones del pedido {active_order.id}: {len(locations)}')
+    print(f'� Ubicaciones encontradas: {len(locations)}')
+    if len(locations) > 0:
+        print(f'   Primera: {locations[0].timestamp}')
+        print(f'   Última: {locations[-1].timestamp}')
     
     return locations
 
