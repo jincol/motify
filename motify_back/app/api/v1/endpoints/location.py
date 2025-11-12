@@ -26,6 +26,21 @@ async def update_location(
     - Solo motorizados pueden actualizar su propia ubicación
     - Admins pueden actualizar ubicaciones de su grupo
     """
+    # VALIDACIÓN: Si envía pedido_id, verificar que existe y está activo
+    if location_in.pedido_id is not None:
+        from app.crud.crud_order import crud_order
+        order = await crud_order.get(db, location_in.pedido_id)
+        
+        if not order:
+            print(f'⚠️ Pedido {location_in.pedido_id} no existe, guardando sin pedido_id')
+            location_in.pedido_id = None
+        elif order.status not in ['pending', 'in_process']:
+            print(f'⚠️ Pedido {location_in.pedido_id} no está activo (status={order.status}), guardando sin pedido_id')
+            location_in.pedido_id = None
+        elif order.courier_id != location_in.user_id:
+            print(f'⚠️ Pedido {location_in.pedido_id} no pertenece al usuario {location_in.user_id}, guardando sin pedido_id')
+            location_in.pedido_id = None
+    
     if current_user.role == UserRole.MOTORIZADO:
         if location_in.user_id != current_user.id:
             raise HTTPException(
