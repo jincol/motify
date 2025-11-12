@@ -9,6 +9,7 @@ import 'package:motify/features/motorizado/presentation/screens/pedido_detail_sc
 import 'package:motify/features/motorizado/presentation/screens/crear_pedido_screen.dart';
 import 'package:motify/features/motorizado/presentation/screens/ruta_fullscreen_screen.dart';
 import 'package:motify/features/motorizado/presentation/widgets/ruta_map_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MotorizadoDashboardScreen extends ConsumerStatefulWidget {
   const MotorizadoDashboardScreen({super.key});
@@ -21,6 +22,52 @@ class MotorizadoDashboardScreen extends ConsumerStatefulWidget {
 class _MotorizadoDashboardScreenState
     extends ConsumerState<MotorizadoDashboardScreen> {
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Sincronizar pedido_id al cargar el dashboard
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncCurrentPedidoId();
+    });
+  }
+
+  /// Sincroniza el pedido_id activo con SharedPreferences
+  Future<void> _syncCurrentPedidoId() async {
+    try {
+      final pedidosAsync = ref.read(pedidosProvider);
+      
+      pedidosAsync.whenData((pedidos) async {
+        if (pedidos.isEmpty) {
+          print('⚠️ No hay pedidos para sincronizar');
+          return;
+        }
+        
+        print('🔄 Sincronizando current_pedido_id...');
+        
+        // Buscar el pedido activo (in_process primero, luego pending)
+        final pedidoActivo = pedidos.firstWhere(
+          (p) => p.estado == 'in_process',
+          orElse: () => pedidos.firstWhere(
+            (p) => p.estado == 'pending',
+            orElse: () => pedidos.first,
+          ),
+        );
+        
+        final prefs = await SharedPreferences.getInstance();
+        final currentPedidoId = prefs.getInt('current_pedido_id');
+        
+        if (currentPedidoId != pedidoActivo.id) {
+          await prefs.setInt('current_pedido_id', pedidoActivo.id);
+          print('✅ current_pedido_id sincronizado: ${currentPedidoId} → ${pedidoActivo.id}');
+        } else {
+          print('✅ current_pedido_id ya está sincronizado: ${pedidoActivo.id}');
+        }
+      });
+    } catch (e) {
+      print('⚠️ Error sincronizando pedido_id: $e');
+    }
+  }
 
   void _onItemTapped(int index) {
     setState(() {
