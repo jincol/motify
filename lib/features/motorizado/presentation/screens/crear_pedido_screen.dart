@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:motify/core/services/pedido_service.dart';
 import 'package:motify/core/providers/pedido_provider.dart';
+import 'package:motify/features/auth/application/auth_notifier.dart';
 
 class CrearPedidoScreen extends ConsumerStatefulWidget {
   const CrearPedidoScreen({Key? key}) : super(key: key);
@@ -36,7 +37,16 @@ class _CrearPedidoScreenState extends ConsumerState<CrearPedidoScreen> {
     setState(() => _isCreating = true);
 
     try {
+      // Obtener el token del provider
+      final authState = ref.read(authNotifierProvider);
+      final token = authState.token;
+      
+      if (token == null) {
+        throw Exception('No hay sesión activa');
+      }
+
       final success = await PedidoService.crearPedido(
+        token: token,
         titulo: _tituloController.text,
         nombreRemitente: _remitenteController.text,
         telefono: _telefonoController.text.isEmpty

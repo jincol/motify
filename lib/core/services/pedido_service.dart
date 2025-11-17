@@ -179,6 +179,7 @@ class PedidoService {
 
   /// Crear nuevo pedido
   static Future<bool> crearPedido({
+    required String token,
     required String titulo,
     required String nombreRemitente,
     String? telefono,
@@ -188,8 +189,7 @@ class PedidoService {
     String? instrucciones,
   }) async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('No token found');
+      if (token.isEmpty) throw Exception('No token found');
 
       // Construir body con las keys en inglés que espera el backend
       final body = jsonEncode({

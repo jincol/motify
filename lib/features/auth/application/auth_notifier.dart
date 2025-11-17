@@ -136,13 +136,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
           final workState = meData['work_state'];
           final userId = meData['id'];
           
-          // Guardar user_id en SharedPreferences para uso del mapa y otros servicios
+          // Guardar user_id y token en SharedPreferences para uso del mapa y otros servicios
           try {
             final prefs = await SharedPreferences.getInstance();
             await prefs.setInt('user_id', userId);
             await prefs.setString('work_state', workState);
+            await prefs.setString('auth_token', token);
           } catch (e) {
-            developer.log('Error guardando user_id en prefs: $e', name: 'auth_notifier');
+            developer.log('Error guardando datos en prefs: $e', name: 'auth_notifier');
           }
           
           state = AuthState(
