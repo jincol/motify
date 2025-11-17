@@ -27,5 +27,4 @@ class Order(Base):
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     assigned_at = Column(DateTime)
     finished_at = Column(DateTime)
-    # Relationship with stops
     stops = relationship("Stop", back_populates="order")

@@ -7,10 +7,10 @@ class ApiConfig {
   
   static String get baseUrl {
     if (isProduction) {
-      // 🚀 Producción - Render
+      // Producción - Render
       return 'https://motify-tahi.onrender.com/api/v1';
     } else {
-      // 🏠 Desarrollo local
+      // Desarrollo local
       return 'http://192.168.1.90:8000/api/v1';
     }
   }

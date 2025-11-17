@@ -402,13 +402,12 @@ class BackgroundLocationService {
     }
     await prefs.setInt('tracking_interval_seconds', intervalSeconds);
 
-    // IMPORTANTE: Resetear timestamp para que envíe inmediatamente con la nueva frecuencia
     await prefs.setInt('last_location_sent', 0);
 
     final service = FlutterBackgroundService();
     service.invoke('updateFrequency', {
       'seconds': intervalSeconds,
-      'workState': workState,  // 🚀 Enviar también el workState
+      'workState': workState,  
     });
 
     // Actualizar notificación
@@ -419,7 +418,7 @@ class BackgroundLocationService {
 
     print('🔄 Frecuencia actualizada: $workState cada ${intervalSeconds}s');
     
-    // 🚀 NUEVO: Enviar ubicación inmediatamente con el nuevo work_state
+    // NUEVO: Enviar ubicación inmediatamente con el nuevo work_state
     // para garantizar que el backend reciba el cambio de estado
     try {
       print('📍 Enviando ubicación inmediata con nuevo work_state...');
@@ -444,7 +443,7 @@ class BackgroundLocationService {
           speed: position.speed,
           heading: position.heading,
           token: token,
-          pedidoId: pedidoId,  // ✅ Incluir pedido_id
+          pedidoId: pedidoId,  
         );
         print('✅ Ubicación enviada con nuevo work_state: $workState');
       }

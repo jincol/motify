@@ -224,17 +224,6 @@ async def get_active_route_locations(
 ):
     """
     **Obtiene las ubicaciones GPS del pedido activo de un motorizado.**
-    
-    **Uso típico:** Vista de mapa "Mi Ruta" en la app del motorizado
-    
-    **Validaciones:**
-    - Motorizado solo puede ver su propia ruta activa
-    - Admin puede ver rutas activas de su grupo
-    - Super Admin puede ver cualquier ruta
-    
-    **Retorna:**
-    - Lista vacía si no hay pedido activo o no hay ubicaciones
-    - Lista de ubicaciones ordenadas cronológicamente para dibujar la ruta
     """
     # Validación: Motorizado solo puede ver su ruta
     if current_user.role == UserRole.MOTORIZADO:
