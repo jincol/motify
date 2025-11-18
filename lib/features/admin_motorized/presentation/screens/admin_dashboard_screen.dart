@@ -1,8 +1,7 @@
 import 'package:motify/features/admin_motorized/application/users_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:motify/core/models/user.dart';
 import '../widgets/team_member_card.dart';
-import '../widgets/map_placeholder.dart';
+import '../widgets/google_team_map_view.dart';
 import 'package:flutter/material.dart';
 import '../widgets/kpi_card.dart';
 
@@ -50,8 +49,8 @@ class AdminMotorizadoDashboardScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 24),
-              // Mapa Section
-              const MapPlaceholder(),
+              // Mapa Section - Ubicaciones en Tiempo Real
+              const GoogleTeamMapView(),
               const SizedBox(height: 24),
               // Equipo en Actividad Section
               const Text(

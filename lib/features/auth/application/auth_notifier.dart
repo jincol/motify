@@ -44,9 +44,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
         final userId = meData['id'];
         final role = meData['role'];
         final workState = meData['work_state'] ?? 'INACTIVO';
+        final grupoId = meData['grupo_id'];
         
         developer.log(
-          '✅ Sesión restaurada: userId=$userId, role=$role, workState=$workState',
+          '✅ Sesión restaurada: userId=$userId, role=$role, workState=$workState, grupoId=$grupoId',
           name: 'auth_notifier',
         );
         
@@ -56,6 +57,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
           await prefs.setInt('user_id', userId);
           await prefs.setString('work_state', workState);
           await prefs.setString('auth_token', token);
+          if (grupoId != null) {
+            await prefs.setInt('grupo_id', grupoId);
+          }
         } catch (e) {
           developer.log('⚠️ Error guardando en prefs: $e', name: 'auth_notifier');
         }
@@ -67,6 +71,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           workState: workState,
           token: token,
           userId: userId,
+          grupoId: grupoId,
         );
 
         // 🚀 IMPORTANTE: Reiniciar tracking GPS si la jornada está activa
@@ -104,12 +109,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> login(String username, String password) async {
     state = AuthState(authStatus: AuthStatus.loading);
     try {
+      developer.log('🔐 Intentando login para: $username', name: 'auth_notifier');
+      developer.log('📍 URL: $_baseUrl', name: 'auth_notifier');
+      
       final response = await http.post(
         Uri.parse(_baseUrl),
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: 'grant_type=password&username=$username&password=$password',
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          developer.log('❌ Timeout en login después de 10 segundos', name: 'auth_notifier');
+          throw Exception('Timeout: El servidor no responde');
+        },
       );
+      developer.log('📥 Respuesta login: ${response.statusCode}', name: 'auth_notifier');
+      
       if (response.statusCode == 200) {
+        developer.log('✅ Login exitoso, obteniendo tokens...', name: 'auth_notifier');
         final data = jsonDecode(response.body);
         final token = data['access_token'];
         final refresh = data['refresh_token'];
@@ -126,15 +143,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
           }
         }
 
+        developer.log('👤 Obteniendo datos del usuario...', name: 'auth_notifier');
         final meResponse = await http.get(
           Uri.parse('${ApiConfig.baseUrl}/users/me'),
           headers: {'Authorization': 'Bearer $token'},
-        );
+        ).timeout(const Duration(seconds: 10));
+        
+        developer.log('📥 Respuesta /users/me: ${meResponse.statusCode}', name: 'auth_notifier');
+        
         if (meResponse.statusCode == 200) {
           final meData = jsonDecode(meResponse.body);
           final role = meData['role'];
           final workState = meData['work_state'];
           final userId = meData['id'];
+          final grupoId = meData['grupo_id'];
           
           // Guardar user_id y token en SharedPreferences para uso del mapa y otros servicios
           try {
@@ -142,9 +164,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
             await prefs.setInt('user_id', userId);
             await prefs.setString('work_state', workState);
             await prefs.setString('auth_token', token);
+            if (grupoId != null) {
+              await prefs.setInt('grupo_id', grupoId);
+            }
           } catch (e) {
             developer.log('Error guardando datos en prefs: $e', name: 'auth_notifier');
           }
+          
+          developer.log('✅ Login completado: role=$role, userId=$userId', name: 'auth_notifier');
           
           state = AuthState(
             authStatus: AuthStatus.authenticated,
@@ -152,14 +179,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
             workState: workState,
             token: token,
             userId: userId,
+            grupoId: grupoId,
           );
         } else {
+          developer.log('❌ Error obteniendo usuario: ${meResponse.statusCode} - ${meResponse.body}', name: 'auth_notifier');
           state = AuthState(authStatus: AuthStatus.error);
         }
       } else {
+        developer.log('❌ Error en login: ${response.statusCode} - ${response.body}', name: 'auth_notifier');
         state = AuthState(authStatus: AuthStatus.error);
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      developer.log('❌ Excepción en login: $e', name: 'auth_notifier');
+      developer.log('Stack trace: $stackTrace', name: 'auth_notifier');
       state = AuthState(authStatus: AuthStatus.error);
     }
   }
@@ -199,12 +231,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final userId = meData['id'];
       final role = meData['role'];
       final workState = meData['work_state'];
+      final grupoId = meData['grupo_id'];
       
       // Guardar user_id en SharedPreferences
       try {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setInt('user_id', userId);
         await prefs.setString('work_state', workState);
+        if (grupoId != null) {
+          await prefs.setInt('grupo_id', grupoId);
+        }
       } catch (e) {
         developer.log('Error guardando user_id en prefs: $e', name: 'auth_notifier');
       }
@@ -215,6 +251,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         workState: workState,
         token: token,
         userId: userId,
+        grupoId: grupoId,
       );
     }
   }

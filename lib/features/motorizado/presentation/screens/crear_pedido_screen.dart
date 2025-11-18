@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:motify/core/services/pedido_service.dart';
 import 'package:motify/core/providers/pedido_provider.dart';
 import 'package:motify/features/auth/application/auth_notifier.dart';
@@ -45,7 +46,7 @@ class _CrearPedidoScreenState extends ConsumerState<CrearPedidoScreen> {
         throw Exception('No hay sesión activa');
       }
 
-      final success = await PedidoService.crearPedido(
+      final nuevoPedido = await PedidoService.crearPedido(
         token: token,
         titulo: _tituloController.text,
         nombreRemitente: _remitenteController.text,
@@ -64,7 +65,12 @@ class _CrearPedidoScreenState extends ConsumerState<CrearPedidoScreen> {
 
       if (!mounted) return;
 
-      if (success) {
+      if (nuevoPedido != null) {
+        // ⭐ CRÍTICO: Actualizar current_pedido_id en SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('current_pedido_id', nuevoPedido.id);
+        print('✅ current_pedido_id actualizado a: ${nuevoPedido.id}');
+        
         ref.invalidate(pedidosProvider);
 
         ScaffoldMessenger.of(context).showSnackBar(

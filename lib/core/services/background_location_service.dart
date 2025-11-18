@@ -161,7 +161,26 @@ class BackgroundLocationService {
 
       if (workState == 'INACTIVO') {
         print('⏸️ Estado INACTIVO, deteniendo tracking');
-        await BackgroundLocationService.stopTracking();
+        try {
+          // Limpiar prefs primero
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.remove('user_id');
+          await prefs.remove('work_state');
+          await prefs.remove('tracking_interval_seconds');
+          await prefs.remove('auth_token');
+          await prefs.remove('last_location_sent');
+          print('✅ Prefs limpiadas desde background loop');
+          
+          // Intentar detener el servicio
+          try {
+            service.stopSelf();
+            print('✅ Servicio detenido desde background loop');
+          } catch (e) {
+            print('⚠️ Error deteniendo servicio: $e');
+          }
+        } catch (e) {
+          print('⚠️ Error en proceso de limpieza: $e');
+        }
         return;
       }
 
@@ -339,17 +358,28 @@ class BackgroundLocationService {
       await Future.delayed(const Duration(milliseconds: 500));
     }
 
-    service.invoke('updateFrequency', {'seconds': intervalSeconds});
+    // Enviar comandos de forma segura
+    try {
+      service.invoke('updateFrequency', {'seconds': intervalSeconds});
+      print('✅ Frecuencia inicial enviada al servicio');
+    } catch (e) {
+      print('⚠️ Error enviando updateFrequency inicial: $e');
+    }
 
     // Esperar un momento antes de actualizar la notificación
     await Future.delayed(const Duration(milliseconds: 200));
 
     print('🚀 Invocando updateNotification con workState: $workState');
 
-    service.invoke('updateNotification', {
-      'workState': workState,
-      'timestamp': DateTime.now().millisecondsSinceEpoch,
-    });
+    try {
+      service.invoke('updateNotification', {
+        'workState': workState,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+      });
+      print('✅ Notificación inicial enviada');
+    } catch (e) {
+      print('⚠️ Error enviando notificación inicial: $e');
+    }
 
     print('✅ Tracking iniciado: $workState cada ${intervalSeconds}s');
   }
@@ -357,22 +387,40 @@ class BackgroundLocationService {
   /// Detener tracking
   @pragma('vm:entry-point')
   static Future<void> stopTracking() async {
-    final service = FlutterBackgroundService();
-    // Intentar señal para detener
-    try {
-      service.invoke('stopService');
-    } catch (_) {
-      // ignoramos
-    }
-
+    print('🛑 Iniciando stopTracking...');
+    
+    // Limpiar SharedPreferences primero
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('user_id');
     await prefs.remove('work_state');
     await prefs.remove('tracking_interval_seconds');
     await prefs.remove('auth_token');
     await prefs.remove('last_location_sent');
+    print('✅ Prefs limpiadas');
+    
+    // Intentar detener el servicio de forma segura
+    try {
+      final service = FlutterBackgroundService();
+      final isRunning = await service.isRunning();
+      print('ℹ️ Servicio corriendo: $isRunning');
+      
+      if (isRunning) {
+        // Intentar con invoke primero (método más limpio)
+        try {
+          service.invoke('stopService');
+          print('✅ Señal stopService enviada');
+        } catch (e) {
+          print('⚠️ Error en invoke stopService (ignorado): $e');
+        }
+      } else {
+        print('ℹ️ Servicio ya estaba detenido');
+      }
+    } catch (e) {
+      print('⚠️ Error al intentar detener servicio (ignorado): $e');
+      // Las prefs ya están limpias, que es lo más importante
+    }
 
-    print('⏹️ Tracking detenido y prefs limpiadas');
+    print('⏹️ Tracking detenido completamente');
   }
 
   @pragma('vm:entry-point')
@@ -382,7 +430,11 @@ class BackgroundLocationService {
       print(
         '⏸️ updateTrackingFrequency: Deteniendo tracking por estado INACTIVO',
       );
-      await BackgroundLocationService.stopTracking();
+      try {
+        await BackgroundLocationService.stopTracking();
+      } catch (e) {
+        print('⚠️ Error deteniendo tracking (ignorado): $e');
+      }
       return;
     }
 
@@ -405,16 +457,28 @@ class BackgroundLocationService {
     await prefs.setInt('last_location_sent', 0);
 
     final service = FlutterBackgroundService();
-    service.invoke('updateFrequency', {
-      'seconds': intervalSeconds,
-      'workState': workState,  
-    });
+    
+    // Enviar comandos de forma segura
+    try {
+      service.invoke('updateFrequency', {
+        'seconds': intervalSeconds,
+        'workState': workState,  
+      });
+      print('✅ Frecuencia actualizada enviada al servicio');
+    } catch (e) {
+      print('⚠️ Error enviando updateFrequency: $e');
+    }
 
     // Actualizar notificación
-    service.invoke('updateNotification', {
-      'workState': workState,
-      'timestamp': DateTime.now().millisecondsSinceEpoch,
-    });
+    try {
+      service.invoke('updateNotification', {
+        'workState': workState,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+      });
+      print('✅ Notificación actualizada');
+    } catch (e) {
+      print('⚠️ Error actualizando notificación: $e');
+    }
 
     print('🔄 Frecuencia actualizada: $workState cada ${intervalSeconds}s');
     

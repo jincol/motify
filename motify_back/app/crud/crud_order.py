@@ -39,6 +39,25 @@ class CRUDOrder:
             .limit(limit)
         )
         return result.scalars().all()
+    
+    async def get_by_courier_today(self, db: AsyncSession, courier_id: int) -> List[Order]:
+        """
+        Obtiene todos los pedidos del motorizado para el día actual (UTC).
+        Ordena por fecha de creación descendente (más recientes primero).
+        """
+        from datetime import datetime
+        
+        # Inicio del día actual en UTC (sin timezone porque la DB tiene TIMESTAMP WITHOUT TIME ZONE)
+        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        result = await db.execute(
+            select(Order)
+            .options(selectinload(Order.stops))
+            .where(Order.courier_id == courier_id)
+            .where(Order.created_at >= today_start)
+            .order_by(Order.created_at.desc())
+        )
+        return result.scalars().all()
 
     async def get_active_order_by_motorizado(self, db: AsyncSession, courier_id: int) -> Optional[Order]:
         """

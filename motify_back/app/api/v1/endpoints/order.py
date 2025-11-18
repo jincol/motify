@@ -46,6 +46,42 @@ async def read_my_orders(
         return []
     return await crud_order.get_by_courier(db, courier_id)
 
+@router.get("/courier/{courier_id}/today", response_model=List[Order])
+async def read_courier_orders_today(
+    courier_id: int,
+    db: AsyncSession = Depends(get_async_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Retorna los pedidos del día actual de un motorizado específico.
+    Solo accesible para admins del grupo o el mismo motorizado.
+    """
+    from app.db.models.user import UserRole
+    from app.crud.user import get_user_by_id
+    
+    # Validación: Motorizado solo puede ver sus propios pedidos
+    if current_user.role == UserRole.MOTORIZADO:
+        if courier_id != current_user.id:
+            raise HTTPException(
+                status_code=403,
+                detail="No puedes ver los pedidos de otro motorizado"
+            )
+    
+    # Validación: Admin solo puede ver pedidos de su grupo
+    elif current_user.role == UserRole.ADMIN_MOTORIZADO:
+        target_user = await get_user_by_id(db, courier_id)
+        
+        if not target_user:
+            raise HTTPException(status_code=404, detail=f"Motorizado {courier_id} no encontrado")
+        
+        if target_user.grupo_id != current_user.id:
+            raise HTTPException(
+                status_code=403,
+                detail="No puedes ver pedidos de motorizados fuera de tu grupo"
+            )
+    
+    return await crud_order.get_by_courier_today(db, courier_id)
+
 
 @router.get("/", response_model=List[Order])
 async def read_orders(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_async_db)):

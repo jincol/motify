@@ -433,7 +433,6 @@ class AnfitrionaDetailPage extends ConsumerWidget {
               ),
             ),
             onPressed: () {
-              // TODO: Abrir chat con la anfitriona
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Abriendo chat con anfitriona...'),

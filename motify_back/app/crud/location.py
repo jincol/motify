@@ -82,6 +82,7 @@ async def get_locations_by_group(
             UserLocation.longitude,
             UserLocation.accuracy,
             UserLocation.timestamp,
+            UserLocation.pedido_id,
             UserLocation.speed,
             UserLocation.heading
         )
@@ -113,6 +114,7 @@ async def get_locations_by_group(
             longitude=row.longitude,
             accuracy=row.accuracy,
             timestamp=row.timestamp,
+            pedido_id=row.pedido_id,
             speed=row.speed,
             heading=row.heading
         ))

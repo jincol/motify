@@ -178,7 +178,7 @@ class PedidoService {
   }
 
   /// Crear nuevo pedido
-  static Future<bool> crearPedido({
+  static Future<PedidoModel?> crearPedido({
     required String token,
     required String titulo,
     required String nombreRemitente,
@@ -210,17 +210,19 @@ class PedidoService {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print('✅ Pedido creado (backend)');
-        return true;
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final pedido = PedidoModel.fromJson(data);
+        print('✅ Pedido creado (backend) - ID: ${pedido.id}');
+        return pedido;
       } else {
         print(
           '❌ Error al crear pedido: ${response.statusCode} - ${response.body}',
         );
-        return false;
+        return null;
       }
     } catch (e) {
       print('❌ Error en crearPedido: $e');
-      return false;
+      return null;
     }
   }
 }
