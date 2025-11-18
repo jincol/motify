@@ -423,6 +423,39 @@ class BackgroundLocationService {
     print('⏹️ Tracking detenido completamente');
   }
 
+  /// Reiniciar tracking completamente (útil cuando cambia pedido_id)
+  @pragma('vm:entry-point')
+  static Future<void> restartTracking({
+    required int userId,
+    required String workState,
+    required String token,
+  }) async {
+    print('🔄 INICIANDO REINICIO DE TRACKING...');
+    print('   userId: $userId');
+    print('   workState: $workState');
+    print('   token: ${token.substring(0, 20)}...');
+    
+    // Detener servicio actual
+    try {
+      print('⏹️ Deteniendo servicio actual...');
+      await stopTracking();
+      print('✅ Servicio detenido, esperando 300ms...');
+      await Future.delayed(const Duration(milliseconds: 300));
+    } catch (e) {
+      print('⚠️ Error deteniendo servicio (continuando): $e');
+    }
+    
+    // Iniciar servicio nuevamente (leerá el nuevo pedido_id)
+    print('🚀 Iniciando servicio nuevamente...');
+    await startTracking(
+      userId: userId,
+      workState: workState,
+      token: token,
+    );
+    
+    print('✅ TRACKING REINICIADO COMPLETAMENTE');
+  }
+
   @pragma('vm:entry-point')
   static Future<void> updateTrackingFrequency(String workState) async {
     // Si el estado es INACTIVO, detener tracking

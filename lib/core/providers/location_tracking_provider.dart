@@ -73,12 +73,22 @@ class LocationTrackingNotifier extends StateNotifier<LocationTrackingState> {
   }
 
   /// Actualizar work_state (cambia la frecuencia automáticamente)
-  Future<void> updateWorkState(String newWorkState) async {
+  Future<void> updateWorkState(String newWorkState, {int? userId, String? token}) async {
     // ✅ PERMITIR actualizar el work_state aunque isTracking sea false
     // porque el servicio de background puede estar corriendo independientemente
     try {
-      // Actualizar el servicio de background
-      await BackgroundLocationService.updateTrackingFrequency(newWorkState);
+      // Si cambia a EN_RUTA, reiniciar servicio para que lea el nuevo pedido_id
+      if (newWorkState == 'EN_RUTA' && userId != null && token != null) {
+        print('🔄 Cambiando a EN_RUTA - reiniciando servicio GPS...');
+        await BackgroundLocationService.restartTracking(
+          userId: userId,
+          workState: newWorkState,
+          token: token,
+        );
+      } else {
+        // Para otros estados, solo actualizar frecuencia
+        await BackgroundLocationService.updateTrackingFrequency(newWorkState);
+      }
 
       // Actualizar el estado del provider
       state = state.copyWith(

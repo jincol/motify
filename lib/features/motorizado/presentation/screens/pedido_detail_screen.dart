@@ -8,6 +8,7 @@ import 'package:motify/core/providers/location_tracking_provider.dart';
 import 'package:motify/core/services/pedido_service.dart';
 import 'package:motify/core/services/photo_service.dart';
 import 'package:motify/core/services/geocoding_service.dart';
+import 'package:motify/features/auth/application/auth_notifier.dart';
 
 class PedidoDetailScreen extends ConsumerStatefulWidget {
   final int pedidoId;
@@ -90,15 +91,35 @@ class _PedidoDetailScreenState extends ConsumerState<PedidoDetailScreen> {
         await prefs.setInt('current_pedido_id', pedido.id);
         print('✅ Guardado current_pedido_id: ${pedido.id}');
         
-        await ref
-            .read(locationTrackingProvider.notifier)
-            .updateWorkState('EN_RUTA');
+        // Obtener userId y token para reiniciar el servicio GPS
+        try {
+          final authState = ref.read(authNotifierProvider);
+          print('📱 AuthState obtenido - userId: ${authState.userId}, token: ${authState.token != null ? "SÍ" : "NO"}');
+          
+          final userId = authState.userId;
+          final token = authState.token;
+          
+          if (userId != null && token != null) {
+            print('🔄 Iniciando cambio a EN_RUTA con userId: $userId');
+            await ref
+                .read(locationTrackingProvider.notifier)
+                .updateWorkState('EN_RUTA', userId: userId, token: token);
+            print('✅ Servicio GPS reiniciado con pedido_id: ${pedido.id}');
+          } else {
+            print('❌ ERROR: userId o token es null');
+            print('   userId: $userId');
+            print('   token: ${token != null ? "existe" : "null"}');
+          }
+        } catch (e) {
+          print('❌ ERROR al cambiar a EN_RUTA: $e');
+          print('   Stack: ${StackTrace.current}');
+        }
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('✅ Recojo confirmado\n📍 GPS tracking activado'),
+            content: Text('✅ Recojo confirmado\n📍 GPS tracking activado cada 30s'),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
+            duration: Duration(seconds: 3),
           ),
         );
       } else if (tipo == 'delivery') {
