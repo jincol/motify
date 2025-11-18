@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:motify/core/constants/google_maps_config.dart';
@@ -18,11 +20,11 @@ class _GoogleTeamMapViewState extends ConsumerState<GoogleTeamMapView> {
   GoogleMapController? _mapController;
   Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
+  MapType _currentMapType = MapType.normal; // Tipo de mapa actual
   
   // Variables para la ruta seleccionada
   Set<Marker> _routeMarkers = {}; // Markers de paradas (pickup/delivery)
   Set<Polyline> _routePolylines = {}; // Polyline de la ruta
-  int? _selectedUserId; // ID del motorizado cuya ruta se está mostrando
   int? _selectedOrderId; // ID del pedido cuya ruta se está mostrando
 
   @override
@@ -60,6 +62,7 @@ class _GoogleTeamMapViewState extends ConsumerState<GoogleTeamMapView> {
                     ),
                     zoom: 12.0,
                   ),
+                  mapType: _currentMapType, // 🗺️ Tipo de mapa dinámico
                   markers: {..._markers, ..._routeMarkers}, // ✅ Combinar ambos sets
                   polylines: {..._polylines, ..._routePolylines}, // ✅ Combinar ambos sets
                   onMapCreated: (controller) {
@@ -75,6 +78,11 @@ class _GoogleTeamMapViewState extends ConsumerState<GoogleTeamMapView> {
                   tiltGesturesEnabled: true,
                   mapToolbarEnabled: false,
                   compassEnabled: true,
+                  gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                    Factory<OneSequenceGestureRecognizer>(
+                      () => EagerGestureRecognizer(),
+                    ),
+                  },
                 );
               },
               loading: () => _buildLoadingState(),
@@ -109,6 +117,39 @@ class _GoogleTeamMapViewState extends ConsumerState<GoogleTeamMapView> {
                         }
                       },
                       tooltip: 'Centrar mapa',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Botón para cambiar tipo de mapa
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        _currentMapType == MapType.normal 
+                          ? Icons.satellite_alt 
+                          : Icons.map,
+                        color: Colors.blue,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _currentMapType = _currentMapType == MapType.normal 
+                            ? MapType.satellite 
+                            : MapType.normal;
+                        });
+                      },
+                      tooltip: _currentMapType == MapType.normal 
+                        ? 'Vista satélite' 
+                        : 'Vista mapa',
                     ),
                   ),
                 ],
@@ -306,7 +347,7 @@ class _GoogleTeamMapViewState extends ConsumerState<GoogleTeamMapView> {
         );
       }
 
-      // 3. Agregar markers para las paradas (pickup/delivery) del pedido
+      // 3. Agregar markers SOLO para las paradas (pickup/delivery) del pedido
       for (final stop in stops) {
         if (stop['order_id'] != orderId) continue;
         
@@ -317,51 +358,18 @@ class _GoogleTeamMapViewState extends ConsumerState<GoogleTeamMapView> {
         
         final stopType = stop['type'] as String;
         final isPickup = stopType == 'pickup';
-        final confirmed = stop['confirmed'] as bool? ?? false;
+        final address = stop['address'] as String? ?? 'Sin dirección';
         
         routeMarkers.add(
           Marker(
             markerId: MarkerId('stop_${stop['id']}'),
             position: LatLng(lat.toDouble(), lng.toDouble()),
             icon: isPickup
-                ? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue)
-                : BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+                ? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan)
+                : BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueMagenta),
             infoWindow: InfoWindow(
               title: isPickup ? '📦 Recojo' : '🎯 Entrega',
-              snippet: '${stop['address'] ?? 'Sin dirección'}\n${confirmed ? '✅ Confirmado' : '⏳ Pendiente'}',
-            ),
-          ),
-        );
-      }
-      
-      // 4. Agregar marcador de INICIO de la ruta (primer punto GPS)
-      if (polylinePoints.isNotEmpty) {
-        routeMarkers.add(
-          Marker(
-            markerId: MarkerId('route_start_$orderId'),
-            position: polylinePoints.first,
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
-            infoWindow: InfoWindow(
-              title: '▶️ INICIO',
-              snippet: 'Primer punto GPS',
-            ),
-          ),
-        );
-      }
-      
-      // 5. Agregar marcador de FIN de la ruta (último punto GPS) - solo si está finalizado
-      final orderInfo = routeData['order'] as Map<String, dynamic>?;
-      final orderStatus = orderInfo?['status'] as String?;
-      
-      if (polylinePoints.length > 1 && orderStatus == 'finished') {
-        routeMarkers.add(
-          Marker(
-            markerId: MarkerId('route_end_$orderId'),
-            position: polylinePoints.last,
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
-            infoWindow: InfoWindow(
-              title: '🏁 FIN',
-              snippet: 'Último punto GPS',
+              snippet: address,
             ),
           ),
         );
@@ -369,7 +377,6 @@ class _GoogleTeamMapViewState extends ConsumerState<GoogleTeamMapView> {
       
       if (mounted) {
         setState(() {
-          _selectedUserId = userId;
           _selectedOrderId = orderId;
           _routeMarkers = routeMarkers; // ✅ Guardar en variables separadas
           _routePolylines = routePolylines; // ✅ Guardar en variables separadas
@@ -424,27 +431,23 @@ class _GoogleTeamMapViewState extends ConsumerState<GoogleTeamMapView> {
   void _clearRoute() {
     if (mounted) {
       setState(() {
-        _selectedUserId = null;
         _selectedOrderId = null;
         _routePolylines.clear(); // ✅ Limpiar polylines de ruta
         _routeMarkers.clear(); // ✅ Limpiar markers de ruta
       });
     }
   }
-
+  
   BitmapDescriptor _getMarkerIcon(String workState) {
-    // 🏍️ Usar iconos de moto con diferentes colores según el estado
+    // Iconos con colores distintivos según estado
     switch (workState.toUpperCase()) {
       case 'EN_RUTA':
-        // Verde: En ruta activa
-        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure);
       case 'JORNADA_ACTIVA':
-        // Naranja: Jornada activa pero sin pedido
         return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange);
       case 'INACTIVO':
       default:
-        // Gris: Inactivo
-        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+        return BitmapDescriptor.defaultMarker;
     }
   }
 
